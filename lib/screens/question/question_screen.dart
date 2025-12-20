@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../theme/colors.dart';
 import '../../data/reading_questions.dart';
 import '../../data/math_questions.dart';
@@ -24,7 +23,7 @@ class QuestionScreen extends StatelessWidget {
     required this.onBack,
     required this.onComplete,
     this.customReadingData, // Opsional
-    this.customMathData,    // Opsional
+    this.customMathData, // Opsional
   });
 
   @override
@@ -68,9 +67,10 @@ class QuestionScreen extends StatelessWidget {
                     // LOGIKA MEMBACA
                     if (subject == "Membaca") {
                       // Gunakan customData jika ada, kalau tidak ambil dari Level
-                      final stepQuestions = customReadingData ?? 
-                          (mode == "mudah" 
-                              ? easyReadingSteps[(level - 1).clamp(0, 4)] 
+                      final stepQuestions =
+                          customReadingData ??
+                          (mode == "mudah"
+                              ? easyReadingSteps[(level - 1).clamp(0, 4)]
                               : hardReadingSteps[(level - 1).clamp(0, 4)]);
 
                       return _ReadingStepCard(
@@ -83,9 +83,10 @@ class QuestionScreen extends StatelessWidget {
                     // LOGIKA BERHITUNG
                     if (subject == "Berhitung") {
                       // Gunakan customData jika ada, kalau tidak ambil dari Level
-                      final mathQuestions = customMathData ?? 
-                          (mode == "mudah" 
-                              ? easyMathSteps[(level - 1).clamp(0, 4)] 
+                      final mathQuestions =
+                          customMathData ??
+                          (mode == "mudah"
+                              ? easyMathSteps[(level - 1).clamp(0, 4)]
                               : hardMathSteps[(level - 1).clamp(0, 4)]);
 
                       return _MathStepCard(
@@ -108,7 +109,7 @@ class QuestionScreen extends StatelessWidget {
 }
 
 // ... (Bagian _AnswerButton, _MathStepCard, _ReadingStepCard SAMA PERSIS seperti sebelumnya)
-// Agar file tidak terlalu panjang di chat, pastikan kamu TETAP MENYIMPAN class _AnswerButton, 
+// Agar file tidak terlalu panjang di chat, pastikan kamu TETAP MENYIMPAN class _AnswerButton,
 // _MathStepCard, dan _ReadingStepCard di bawah sini ya.
 // Isinya tidak perlu diubah, karena mereka hanya menerima List<Question> yang sudah kita siapkan di atas.
 
@@ -222,8 +223,8 @@ class _AnswerButton extends StatelessWidget {
                   (isSelected && isCorrect) || showCorrect
                       ? Icons.check_circle
                       : isSelected && !isCorrect
-                          ? Icons.close
-                          : null,
+                      ? Icons.close
+                      : null,
                   color: (isSelected && isCorrect) || showCorrect
                       ? AppColors.green
                       : AppColors.red,
@@ -271,9 +272,15 @@ class _MathStepCardState extends State<_MathStepCard> {
       SnackBar(
         content: Row(
           children: [
-            Icon(isCorrect ? Icons.check_circle : Icons.cancel, color: Colors.white),
+            Icon(
+              isCorrect ? Icons.check_circle : Icons.cancel,
+              color: Colors.white,
+            ),
             const SizedBox(width: 8),
-            Text(isCorrect ? 'Jawaban Benar! 🎉' : 'Jawaban Salah 😔', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              isCorrect ? 'Jawaban Benar! 🎉' : 'Jawaban Salah 😔',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
         backgroundColor: isCorrect ? AppColors.green : AppColors.red,
@@ -309,9 +316,21 @@ class _MathStepCardState extends State<_MathStepCard> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
-            Icon(needRetry ? Icons.refresh : Icons.celebration, color: needRetry ? AppColors.orange : AppColors.green, size: 32),
+            Icon(
+              needRetry ? Icons.refresh : Icons.celebration,
+              color: needRetry ? AppColors.orange : AppColors.green,
+              size: 32,
+            ),
             const SizedBox(width: 12),
-            Expanded(child: Text(needRetry ? 'Perlu Mengulang' : 'Selamat!', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+            Expanded(
+              child: Text(
+                needRetry ? 'Perlu Mengulang' : 'Selamat!',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ],
         ),
         content: SingleChildScrollView(
@@ -320,28 +339,50 @@ class _MathStepCardState extends State<_MathStepCard> {
             children: [
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: AppColors.softTeal, borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(
+                  color: AppColors.softTeal,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   children: [
-                    Text('Nilai Kamu', style: TextStyle(fontSize: 16, color: Colors.grey.shade700)),
+                    Text(
+                      'Nilai Kamu',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    Text('$score', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: AppColors.blue)),
+                    Text(
+                      '$score',
+                      style: const TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.blue,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('Benar: $correctCount / Salah: $wrongCount', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                    Text(
+                      'Benar: $correctCount / Salah: $wrongCount',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
               Text(
-                needRetry 
-                  ? 'Kamu salah $wrongCount soal. Ayo coba lagi!' 
-                  : 'Hebat! Kamu menguasai materi ini.',
+                needRetry
+                    ? 'Kamu salah $wrongCount soal. Ayo coba lagi!'
+                    : 'Hebat! Kamu menguasai materi ini.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: needRetry ? AppColors.orange : AppColors.green,
-                  fontWeight: FontWeight.bold
+                  fontWeight: FontWeight.bold,
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -350,13 +391,23 @@ class _MathStepCardState extends State<_MathStepCard> {
             onPressed: () async {
               Navigator.pop(ctx);
               if (needRetry) {
-                setState(() { selectedAnswers.clear(); showFeedback.clear(); });
+                setState(() {
+                  selectedAnswers.clear();
+                  showFeedback.clear();
+                });
               } else {
                 await UserProgressService.incrementMaterialCount();
                 widget.onFinish(true);
               }
             },
-            child: Text(needRetry ? 'Ulangi Step' : 'Lanjutkan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: needRetry ? AppColors.orange : AppColors.green)),
+            child: Text(
+              needRetry ? 'Ulangi Step' : 'Lanjutkan',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: needRetry ? AppColors.orange : AppColors.green,
+              ),
+            ),
           ),
         ],
       ),
@@ -371,55 +422,87 @@ class _MathStepCardState extends State<_MathStepCard> {
       children: [
         Container(
           padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 15)]),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 15)],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.softTeal, borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(
+                  color: AppColors.softTeal,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text("🔢", style: TextStyle(fontSize: 24)),
                     const SizedBox(width: 8),
-                    Text(widget.isEasyMode ? "Latihan Berhitung (Mudah)" : "Latihan Berhitung (Sulit)", style: const TextStyle(fontWeight: FontWeight.w600)),
+                    Text(
+                      widget.isEasyMode
+                          ? "Latihan Berhitung (Mudah)"
+                          : "Latihan Berhitung (Sulit)",
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              const Text("Hitung dan pilih jawaban yang benar:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text(
+                "Hitung dan pilih jawaban yang benar:",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
-              
+
               ...List.generate(widget.questions.length, (index) {
                 final q = widget.questions[index];
                 final selectedIndex = selectedAnswers[index];
                 final isAnswered = selectedIndex != null;
-                final isCorrectAnswer = isAnswered && selectedIndex == q.correctIndex;
+                final isCorrectAnswer =
+                    isAnswered && selectedIndex == q.correctIndex;
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Soal ${index + 1}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.blue)),
-                      const SizedBox(height: 8),
-                      if (q.visual != null) ...[
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(color: const Color(0xFFFFF9E6), borderRadius: BorderRadius.circular(16)),
-                          child: Text(q.visual!, style: const TextStyle(fontSize: 28), textAlign: TextAlign.center),
+                      Text(
+                        "Soal ${index + 1}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.blue,
                         ),
-                        const SizedBox(height: 12),
-                      ],
-                      Text(q.questionText, style: const TextStyle(fontSize: 16, height: 1.5)),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF9E6),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          q.visual,
+                          style: const TextStyle(fontSize: 28),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                       const SizedBox(height: 12),
-                      
+                      Text(
+                        q.questionText,
+                        style: const TextStyle(fontSize: 16, height: 1.5),
+                      ),
+                      const SizedBox(height: 12),
+
                       ...List.generate(q.options.length, (optIndex) {
                         final isSelected = selectedIndex == optIndex;
                         final isCorrect = optIndex == q.correctIndex;
-                        final showCorrect = isAnswered && isCorrectAnswer && isCorrect;
+                        final showCorrect =
+                            isAnswered && isCorrectAnswer && isCorrect;
 
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 8),
@@ -430,7 +513,8 @@ class _MathStepCardState extends State<_MathStepCard> {
                             isSelected: isSelected,
                             showCorrect: showCorrect,
                             isDisabled: isAnswered,
-                            onTap: () => _handleAnswerTap(index, optIndex, isCorrect),
+                            onTap: () =>
+                                _handleAnswerTap(index, optIndex, isCorrect),
                           ),
                         );
                       }),
@@ -443,16 +527,28 @@ class _MathStepCardState extends State<_MathStepCard> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: selectedAnswers.length == widget.questions.length ? () => _showResultDialog() : null,
+                  onPressed: selectedAnswers.length == widget.questions.length
+                      ? () => _showResultDialog()
+                      : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: selectedAnswers.length == widget.questions.length ? AppColors.green : Colors.grey,
+                    backgroundColor:
+                        selectedAnswers.length == widget.questions.length
+                        ? AppColors.green
+                        : Colors.grey,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
                   ),
                   child: Text(
-                    selectedAnswers.length == widget.questions.length ? "Selesai Step Ini" : "Jawab Semua Soal (${selectedAnswers.length}/${widget.questions.length})",
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    selectedAnswers.length == widget.questions.length
+                        ? "Selesai Step Ini"
+                        : "Jawab Semua Soal (${selectedAnswers.length}/${widget.questions.length})",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -498,9 +594,15 @@ class _ReadingStepCardState extends State<_ReadingStepCard> {
       SnackBar(
         content: Row(
           children: [
-            Icon(isCorrect ? Icons.check_circle : Icons.cancel, color: Colors.white),
+            Icon(
+              isCorrect ? Icons.check_circle : Icons.cancel,
+              color: Colors.white,
+            ),
             const SizedBox(width: 8),
-            Text(isCorrect ? 'Jawaban Benar! 🎉' : 'Jawaban Salah 😔', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              isCorrect ? 'Jawaban Benar! 🎉' : 'Jawaban Salah 😔',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
         backgroundColor: isCorrect ? AppColors.green : AppColors.red,
@@ -536,9 +638,21 @@ class _ReadingStepCardState extends State<_ReadingStepCard> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
-            Icon(needRetry ? Icons.refresh : Icons.celebration, color: needRetry ? AppColors.orange : AppColors.green, size: 32),
+            Icon(
+              needRetry ? Icons.refresh : Icons.celebration,
+              color: needRetry ? AppColors.orange : AppColors.green,
+              size: 32,
+            ),
             const SizedBox(width: 12),
-            Expanded(child: Text(needRetry ? 'Perlu Mengulang' : 'Selamat!', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+            Expanded(
+              child: Text(
+                needRetry ? 'Perlu Mengulang' : 'Selamat!',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ],
         ),
         content: SingleChildScrollView(
@@ -547,29 +661,51 @@ class _ReadingStepCardState extends State<_ReadingStepCard> {
             children: [
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: AppColors.softTeal, borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(
+                  color: AppColors.softTeal,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Column(
                   children: [
-                    Text('Nilai Kamu', style: TextStyle(fontSize: 16, color: Colors.grey.shade700)),
+                    Text(
+                      'Nilai Kamu',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    Text('$score', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: AppColors.blue)),
+                    Text(
+                      '$score',
+                      style: const TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.blue,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('Benar: $correctCount / Salah: $wrongCount', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                    Text(
+                      'Benar: $correctCount / Salah: $wrongCount',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
               // Pesan Singkat
               Text(
-                needRetry 
-                  ? 'Kamu salah $wrongCount soal. Ayo coba lagi!' 
-                  : 'Hebat! Kamu menguasai materi ini.',
+                needRetry
+                    ? 'Kamu salah $wrongCount soal. Ayo coba lagi!'
+                    : 'Hebat! Kamu menguasai materi ini.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: needRetry ? AppColors.orange : AppColors.green,
-                  fontWeight: FontWeight.bold
+                  fontWeight: FontWeight.bold,
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -578,13 +714,23 @@ class _ReadingStepCardState extends State<_ReadingStepCard> {
             onPressed: () async {
               Navigator.pop(ctx);
               if (needRetry) {
-                setState(() { selectedAnswers.clear(); showFeedback.clear(); });
+                setState(() {
+                  selectedAnswers.clear();
+                  showFeedback.clear();
+                });
               } else {
                 await UserProgressService.incrementMaterialCount();
                 widget.onFinish(true);
               }
             },
-            child: Text(needRetry ? 'Ulangi Step' : 'Lanjutkan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: needRetry ? AppColors.orange : AppColors.green)),
+            child: Text(
+              needRetry ? 'Ulangi Step' : 'Lanjutkan',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: needRetry ? AppColors.orange : AppColors.green,
+              ),
+            ),
           ),
         ],
       ),
@@ -599,46 +745,73 @@ class _ReadingStepCardState extends State<_ReadingStepCard> {
       children: [
         Container(
           padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 15)]),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 15)],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.softTeal, borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(
+                  color: AppColors.softTeal,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text("📖", style: TextStyle(fontSize: 24)),
                     const SizedBox(width: 8),
-                    Text(widget.isEasyMode ? "Latihan Membaca (Mudah)" : "Latihan Membaca (Sulit)", style: const TextStyle(fontWeight: FontWeight.w600)),
+                    Text(
+                      widget.isEasyMode
+                          ? "Latihan Membaca (Mudah)"
+                          : "Latihan Membaca (Sulit)",
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              const Text("Baca teks dan pilih jawaban yang benar:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text(
+                "Baca teks dan pilih jawaban yang benar:",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
-              
+
               ...List.generate(widget.questions.length, (index) {
                 final q = widget.questions[index];
                 final selectedIndex = selectedAnswers[index];
                 final isAnswered = selectedIndex != null;
-                final isCorrectAnswer = isAnswered && selectedIndex == q.correctIndex;
+                final isCorrectAnswer =
+                    isAnswered && selectedIndex == q.correctIndex;
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Soal ${index + 1}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.blue)),
+                      Text(
+                        "Soal ${index + 1}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.blue,
+                        ),
+                      ),
                       const SizedBox(height: 8),
-                      Text(q.text, style: const TextStyle(fontSize: 16, height: 1.5)),
+                      Text(
+                        q.text,
+                        style: const TextStyle(fontSize: 16, height: 1.5),
+                      ),
                       const SizedBox(height: 12),
-                      
+
                       ...List.generate(q.options.length, (optIndex) {
                         final isSelected = selectedIndex == optIndex;
                         final isCorrect = optIndex == q.correctIndex;
-                        final showCorrect = isAnswered && isCorrectAnswer && isCorrect;
+                        final showCorrect =
+                            isAnswered && isCorrectAnswer && isCorrect;
 
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 8),
@@ -649,11 +822,12 @@ class _ReadingStepCardState extends State<_ReadingStepCard> {
                             isSelected: isSelected,
                             showCorrect: showCorrect,
                             isDisabled: isAnswered,
-                            onTap: () => _handleAnswerTap(index, optIndex, isCorrect),
+                            onTap: () =>
+                                _handleAnswerTap(index, optIndex, isCorrect),
                           ),
                         );
                       }),
-                      
+
                       if (isAnswered && !isCorrectAnswer)
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
@@ -662,11 +836,18 @@ class _ReadingStepCardState extends State<_ReadingStepCard> {
                             decoration: BoxDecoration(
                               color: AppColors.red.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.red, width: 2),
+                              border: Border.all(
+                                color: AppColors.red,
+                                width: 2,
+                              ),
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.cancel, color: AppColors.red, size: 20),
+                                Icon(
+                                  Icons.cancel,
+                                  color: AppColors.red,
+                                  size: 20,
+                                ),
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -691,16 +872,28 @@ class _ReadingStepCardState extends State<_ReadingStepCard> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: selectedAnswers.length == widget.questions.length ? () => _showResultDialog() : null,
+                  onPressed: selectedAnswers.length == widget.questions.length
+                      ? () => _showResultDialog()
+                      : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: selectedAnswers.length == widget.questions.length ? AppColors.green : Colors.grey,
+                    backgroundColor:
+                        selectedAnswers.length == widget.questions.length
+                        ? AppColors.green
+                        : Colors.grey,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
                   ),
                   child: Text(
-                    selectedAnswers.length == widget.questions.length ? "Selesai Step Ini" : "Jawab Semua Soal (${selectedAnswers.length}/${widget.questions.length})",
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    selectedAnswers.length == widget.questions.length
+                        ? "Selesai Step Ini"
+                        : "Jawab Semua Soal (${selectedAnswers.length}/${widget.questions.length})",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

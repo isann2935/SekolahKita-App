@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
 import '../../theme/colors.dart';
 import '../../data/writing_data.dart';
 
@@ -25,12 +24,12 @@ class _WritingScreenState extends State<WritingScreen> {
   bool _isDrawing = false;
   bool _isCompleted = false;
   int _currentLetterIndex = 0;
-  
+
   // Untuk validasi tracing
   double _accuracy = 0.0;
   String _feedbackMessage = '';
   bool _showFeedback = false;
-  
+
   // Canvas size untuk kalkulasi
   Size _canvasSize = Size.zero;
 
@@ -130,10 +129,10 @@ class _WritingScreenState extends State<WritingScreen> {
 
     // Dapatkan path reference
     final center = Offset(_canvasSize.width / 2, _canvasSize.height / 2);
-    final letterSize = currentStep.isWordStep 
-        ? _canvasSize.width * 0.1 
+    final letterSize = currentStep.isWordStep
+        ? _canvasSize.width * 0.1
         : _canvasSize.width * 0.7;
-    
+
     List<Offset> guidePoints;
     if (currentStep.isWordStep) {
       guidePoints = _getWordGuidePoints(_canvasSize);
@@ -177,16 +176,17 @@ class _WritingScreenState extends State<WritingScreen> {
     // Hanya berlaku jika accuracy rendah (< 60%)
     // Jika accuracy tinggi, berarti user menggambar dengan benar meski banyak titik
     final maxAllowedPoints = (guidePoints.length * 5.0).toInt();
-    final isExcessiveDrawing = allUserPoints.length > maxAllowedPoints && accuracy < 60;
+    final isExcessiveDrawing =
+        allUserPoints.length > maxAllowedPoints && accuracy < 60;
 
     // Score calculation
     // Weighted: accuracy lebih penting (55%) karena mencegah coretan acak
     final rawScore = (accuracy * 0.55 + coverage * 0.45);
-    
+
     setState(() {
       _accuracy = rawScore;
       _showFeedback = true;
-      
+
       // Kriteria kelulusan:
       // - Accuracy >= 65% (mayoritas titik user harus dekat guide - mencegah coretan acak)
       // - Coverage >= 55% (harus menutupi lebih dari setengah guide points)
@@ -194,7 +194,7 @@ class _WritingScreenState extends State<WritingScreen> {
       final bool passAccuracy = accuracy >= 65;
       final bool passCoverage = coverage >= 55;
       final bool passExcess = !isExcessiveDrawing;
-      
+
       if (passAccuracy && passCoverage && passExcess) {
         _isCompleted = true;
         if (rawScore >= 85) {
@@ -222,9 +222,12 @@ class _WritingScreenState extends State<WritingScreen> {
     });
   }
 
-
   /// Mendapatkan titik-titik guide untuk huruf
-  List<Offset> _getLetterGuidePoints(String letter, Offset center, double size) {
+  List<Offset> _getLetterGuidePoints(
+    String letter,
+    Offset center,
+    double size,
+  ) {
     final path = LetterPathHelper.getLetterPath(letter, center, size);
     return _samplePointsFromPath(path, 8.0);
   }
@@ -242,11 +245,11 @@ class _WritingScreenState extends State<WritingScreen> {
       final letterX = 20 + letterWidth * i + letterWidth / 2;
       final center = Offset(letterX, baseY);
       final letterSize = (letterWidth * 0.75).clamp(35.0, 55.0);
-      
+
       final path = LetterPathHelper.getLetterPath(word[i], center, letterSize);
       allPoints.addAll(_samplePointsFromPath(path, 6.0));
     }
-    
+
     return allPoints;
   }
 
@@ -254,7 +257,7 @@ class _WritingScreenState extends State<WritingScreen> {
   List<Offset> _samplePointsFromPath(Path path, double spacing) {
     List<Offset> points = [];
     final metrics = path.computeMetrics();
-    
+
     for (var metric in metrics) {
       double distance = 0;
       while (distance < metric.length) {
@@ -265,7 +268,7 @@ class _WritingScreenState extends State<WritingScreen> {
         distance += spacing;
       }
     }
-    
+
     return points;
   }
 
@@ -285,10 +288,10 @@ class _WritingScreenState extends State<WritingScreen> {
             const SizedBox(height: 12),
             if (currentStep.isLetterStep) _buildLetterProgress(),
             const SizedBox(height: 12),
-            
+
             // Feedback message
             if (_showFeedback) _buildFeedback(),
-            
+
             Expanded(
               child: Center(
                 child: isWordStep
@@ -375,10 +378,7 @@ class _WritingScreenState extends State<WritingScreen> {
           Expanded(
             child: Text(
               "Menulis - Step ${widget.step}",
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -435,8 +435,8 @@ class _WritingScreenState extends State<WritingScreen> {
               color: isActive
                   ? AppColors.blue
                   : isCompleted
-                      ? AppColors.green
-                      : Colors.grey.shade300,
+                  ? AppColors.green
+                  : Colors.grey.shade300,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
@@ -458,7 +458,7 @@ class _WritingScreenState extends State<WritingScreen> {
   Widget _buildLetterCanvas(double screenWidth) {
     final canvasSize = screenWidth * 0.85;
     _canvasSize = Size(canvasSize, canvasSize);
-    
+
     return Container(
       width: canvasSize,
       height: canvasSize,
@@ -496,7 +496,7 @@ class _WritingScreenState extends State<WritingScreen> {
     final canvasWidth = screenWidth * 0.9;
     final canvasHeight = screenHeight * 0.32;
     _canvasSize = Size(canvasWidth, canvasHeight);
-    
+
     return Container(
       width: canvasWidth,
       height: canvasHeight,
@@ -611,7 +611,9 @@ class _WritingScreenState extends State<WritingScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isCompleted ? AppColors.green : AppColors.blue,
+                backgroundColor: _isCompleted
+                    ? AppColors.green
+                    : AppColors.blue,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -619,7 +621,9 @@ class _WritingScreenState extends State<WritingScreen> {
               ),
               child: Text(
                 _isCompleted
-                    ? (currentStep.isLetterStep && !isLastLetter ? "Lanjut ➜" : "Selesai ✓")
+                    ? (currentStep.isLetterStep && !isLastLetter
+                          ? "Lanjut ➜"
+                          : "Selesai ✓")
                     : "Periksa",
                 style: const TextStyle(
                   color: Colors.white,
@@ -657,38 +661,52 @@ class LetterPathHelper {
         path.moveTo(center.dx - h * 0.4, center.dy - h);
         path.lineTo(center.dx + h * 0.1, center.dy - h);
         path.quadraticBezierTo(
-          center.dx + h * 0.5, center.dy - h,
-          center.dx + h * 0.5, center.dy - h * 0.5,
+          center.dx + h * 0.5,
+          center.dy - h,
+          center.dx + h * 0.5,
+          center.dy - h * 0.5,
         );
         path.quadraticBezierTo(
-          center.dx + h * 0.5, center.dy,
-          center.dx - h * 0.4, center.dy,
+          center.dx + h * 0.5,
+          center.dy,
+          center.dx - h * 0.4,
+          center.dy,
         );
         path.moveTo(center.dx - h * 0.4, center.dy);
         path.lineTo(center.dx + h * 0.15, center.dy);
         path.quadraticBezierTo(
-          center.dx + h * 0.55, center.dy,
-          center.dx + h * 0.55, center.dy + h * 0.5,
+          center.dx + h * 0.55,
+          center.dy,
+          center.dx + h * 0.55,
+          center.dy + h * 0.5,
         );
         path.quadraticBezierTo(
-          center.dx + h * 0.55, center.dy + h,
-          center.dx - h * 0.4, center.dy + h,
+          center.dx + h * 0.55,
+          center.dy + h,
+          center.dx - h * 0.4,
+          center.dy + h,
         );
         break;
 
       case 'C':
         path.moveTo(center.dx + h * 0.4, center.dy - h * 0.8);
         path.quadraticBezierTo(
-          center.dx - h * 0.1, center.dy - h * 1.1,
-          center.dx - h * 0.5, center.dy - h * 0.3,
+          center.dx - h * 0.1,
+          center.dy - h * 1.1,
+          center.dx - h * 0.5,
+          center.dy - h * 0.3,
         );
         path.quadraticBezierTo(
-          center.dx - h * 0.7, center.dy + h * 0.3,
-          center.dx - h * 0.5, center.dy + h * 0.7,
+          center.dx - h * 0.7,
+          center.dy + h * 0.3,
+          center.dx - h * 0.5,
+          center.dy + h * 0.7,
         );
         path.quadraticBezierTo(
-          center.dx - h * 0.1, center.dy + h * 1.1,
-          center.dx + h * 0.4, center.dy + h * 0.8,
+          center.dx - h * 0.1,
+          center.dy + h * 1.1,
+          center.dx + h * 0.4,
+          center.dy + h * 0.8,
         );
         break;
 
@@ -698,12 +716,16 @@ class LetterPathHelper {
         path.moveTo(center.dx - h * 0.4, center.dy - h);
         path.lineTo(center.dx, center.dy - h);
         path.quadraticBezierTo(
-          center.dx + h * 0.6, center.dy - h,
-          center.dx + h * 0.6, center.dy,
+          center.dx + h * 0.6,
+          center.dy - h,
+          center.dx + h * 0.6,
+          center.dy,
         );
         path.quadraticBezierTo(
-          center.dx + h * 0.6, center.dy + h,
-          center.dx, center.dy + h,
+          center.dx + h * 0.6,
+          center.dy + h,
+          center.dx,
+          center.dy + h,
         );
         path.lineTo(center.dx - h * 0.4, center.dy + h);
         break;
@@ -728,16 +750,22 @@ class LetterPathHelper {
       case 'G':
         path.moveTo(center.dx + h * 0.4, center.dy - h * 0.7);
         path.quadraticBezierTo(
-          center.dx, center.dy - h * 1.1,
-          center.dx - h * 0.5, center.dy - h * 0.3,
+          center.dx,
+          center.dy - h * 1.1,
+          center.dx - h * 0.5,
+          center.dy - h * 0.3,
         );
         path.quadraticBezierTo(
-          center.dx - h * 0.7, center.dy + h * 0.3,
-          center.dx - h * 0.5, center.dy + h * 0.7,
+          center.dx - h * 0.7,
+          center.dy + h * 0.3,
+          center.dx - h * 0.5,
+          center.dy + h * 0.7,
         );
         path.quadraticBezierTo(
-          center.dx, center.dy + h * 1.1,
-          center.dx + h * 0.5, center.dy + h * 0.5,
+          center.dx,
+          center.dy + h * 1.1,
+          center.dx + h * 0.5,
+          center.dy + h * 0.5,
         );
         path.lineTo(center.dx + h * 0.5, center.dy);
         path.lineTo(center.dx, center.dy);
@@ -767,12 +795,16 @@ class LetterPathHelper {
         path.moveTo(center.dx + h * 0.2, center.dy - h);
         path.lineTo(center.dx + h * 0.2, center.dy + h * 0.5);
         path.quadraticBezierTo(
-          center.dx + h * 0.2, center.dy + h,
-          center.dx - h * 0.2, center.dy + h,
+          center.dx + h * 0.2,
+          center.dy + h,
+          center.dx - h * 0.2,
+          center.dy + h,
         );
         path.quadraticBezierTo(
-          center.dx - h * 0.5, center.dy + h,
-          center.dx - h * 0.5, center.dy + h * 0.6,
+          center.dx - h * 0.5,
+          center.dy + h,
+          center.dx - h * 0.5,
+          center.dy + h * 0.6,
         );
         break;
 
@@ -820,12 +852,16 @@ class LetterPathHelper {
         path.lineTo(center.dx - h * 0.4, center.dy - h);
         path.lineTo(center.dx + h * 0.1, center.dy - h);
         path.quadraticBezierTo(
-          center.dx + h * 0.5, center.dy - h,
-          center.dx + h * 0.5, center.dy - h * 0.3,
+          center.dx + h * 0.5,
+          center.dy - h,
+          center.dx + h * 0.5,
+          center.dy - h * 0.3,
         );
         path.quadraticBezierTo(
-          center.dx + h * 0.5, center.dy + h * 0.2,
-          center.dx - h * 0.4, center.dy + h * 0.2,
+          center.dx + h * 0.5,
+          center.dy + h * 0.2,
+          center.dx - h * 0.4,
+          center.dy + h * 0.2,
         );
         break;
 
@@ -846,12 +882,16 @@ class LetterPathHelper {
         path.lineTo(center.dx - h * 0.4, center.dy - h);
         path.lineTo(center.dx + h * 0.1, center.dy - h);
         path.quadraticBezierTo(
-          center.dx + h * 0.5, center.dy - h,
-          center.dx + h * 0.5, center.dy - h * 0.3,
+          center.dx + h * 0.5,
+          center.dy - h,
+          center.dx + h * 0.5,
+          center.dy - h * 0.3,
         );
         path.quadraticBezierTo(
-          center.dx + h * 0.5, center.dy + h * 0.15,
-          center.dx - h * 0.4, center.dy + h * 0.15,
+          center.dx + h * 0.5,
+          center.dy + h * 0.15,
+          center.dx - h * 0.4,
+          center.dy + h * 0.15,
         );
         path.moveTo(center.dx, center.dy + h * 0.15);
         path.lineTo(center.dx + h * 0.45, center.dy + h);
@@ -860,28 +900,40 @@ class LetterPathHelper {
       case 'S':
         path.moveTo(center.dx + h * 0.35, center.dy - h * 0.7);
         path.quadraticBezierTo(
-          center.dx + h * 0.35, center.dy - h,
-          center.dx, center.dy - h,
+          center.dx + h * 0.35,
+          center.dy - h,
+          center.dx,
+          center.dy - h,
         );
         path.quadraticBezierTo(
-          center.dx - h * 0.45, center.dy - h,
-          center.dx - h * 0.45, center.dy - h * 0.55,
+          center.dx - h * 0.45,
+          center.dy - h,
+          center.dx - h * 0.45,
+          center.dy - h * 0.55,
         );
         path.quadraticBezierTo(
-          center.dx - h * 0.45, center.dy - h * 0.1,
-          center.dx, center.dy,
+          center.dx - h * 0.45,
+          center.dy - h * 0.1,
+          center.dx,
+          center.dy,
         );
         path.quadraticBezierTo(
-          center.dx + h * 0.45, center.dy + h * 0.1,
-          center.dx + h * 0.45, center.dy + h * 0.55,
+          center.dx + h * 0.45,
+          center.dy + h * 0.1,
+          center.dx + h * 0.45,
+          center.dy + h * 0.55,
         );
         path.quadraticBezierTo(
-          center.dx + h * 0.45, center.dy + h,
-          center.dx, center.dy + h,
+          center.dx + h * 0.45,
+          center.dy + h,
+          center.dx,
+          center.dy + h,
         );
         path.quadraticBezierTo(
-          center.dx - h * 0.35, center.dy + h,
-          center.dx - h * 0.35, center.dy + h * 0.7,
+          center.dx - h * 0.35,
+          center.dy + h,
+          center.dx - h * 0.35,
+          center.dy + h * 0.7,
         );
         break;
 
@@ -896,12 +948,16 @@ class LetterPathHelper {
         path.moveTo(center.dx - h * 0.4, center.dy - h);
         path.lineTo(center.dx - h * 0.4, center.dy + h * 0.5);
         path.quadraticBezierTo(
-          center.dx - h * 0.4, center.dy + h,
-          center.dx, center.dy + h,
+          center.dx - h * 0.4,
+          center.dy + h,
+          center.dx,
+          center.dy + h,
         );
         path.quadraticBezierTo(
-          center.dx + h * 0.4, center.dy + h,
-          center.dx + h * 0.4, center.dy + h * 0.5,
+          center.dx + h * 0.4,
+          center.dy + h,
+          center.dx + h * 0.4,
+          center.dy + h * 0.5,
         );
         path.lineTo(center.dx + h * 0.4, center.dy - h);
         break;
@@ -1081,19 +1137,11 @@ class _DottedWordPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final baseY = size.height * 0.75;
-    canvas.drawLine(
-      Offset(20, baseY),
-      Offset(size.width - 20, baseY),
-      paint,
-    );
+    canvas.drawLine(Offset(20, baseY), Offset(size.width - 20, baseY), paint);
 
     final topY = size.height * 0.25;
     paint.color = Colors.grey.shade200;
-    canvas.drawLine(
-      Offset(20, topY),
-      Offset(size.width - 20, topY),
-      paint,
-    );
+    canvas.drawLine(Offset(20, topY), Offset(size.width - 20, topY), paint);
   }
 
   void _drawDottedWord(Canvas canvas, Size size) {

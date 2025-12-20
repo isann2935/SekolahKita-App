@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../theme/colors.dart';
 import '../../services/user_progress_service.dart'; // ✅ PENTING: Untuk simpan statistik
 import '../../services/notification_service.dart'; // ✅ Untuk notifikasi
 import '../../data/reading_questions.dart';
 import '../../data/math_questions.dart';
-import '../../data/writing_data.dart';
-import '../question/question_screen.dart'; // Menggunakan widget jawaban yang sudah ada
 import '../writing/writing_screen.dart'; // Menggunakan layar menulis yang sudah ada
 
 class ExamSimulationScreen extends StatefulWidget {
@@ -19,7 +16,7 @@ class ExamSimulationScreen extends StatefulWidget {
 
 class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
   // --- TIMER (4 Menit = 240 Detik) ---
-  static const int totalSeconds = 240; 
+  static const int totalSeconds = 240;
   int remainingSeconds = totalSeconds;
   Timer? _timer;
 
@@ -30,7 +27,7 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
 
   // --- STATE ---
   int currentPhase = 0; // 0: Membaca, 1: Menulis, 2: Berhitung
-  
+
   // Tracking Jawaban
   Map<int, int> readingAnswers = {}; // Index Soal -> Index Jawaban User
   Map<int, int> mathAnswers = {};
@@ -143,9 +140,9 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
             Text(
               "Nilai Akhir: ${totalScore * 10}",
               style: const TextStyle(
-                fontSize: 40, 
+                fontSize: 40,
                 fontWeight: FontWeight.bold,
-                color: AppColors.blue
+                color: AppColors.blue,
               ),
             ),
             const SizedBox(height: 16),
@@ -155,7 +152,9 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
             _buildResultRow("🔢 Berhitung", "$mathScore / 4"),
             const SizedBox(height: 20),
             Text(
-              isPassed ? "Lulus! Kerja bagus! 🎉" : "Belum lulus, coba lagi ya! 💪",
+              isPassed
+                  ? "Lulus! Kerja bagus! 🎉"
+                  : "Belum lulus, coba lagi ya! 💪",
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: isPassed ? AppColors.green : AppColors.orange,
@@ -171,8 +170,11 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
               Navigator.pop(ctx); // Tutup dialog
               Navigator.pop(context); // Kembali ke menu
             },
-            child: const Text("Tutup", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          )
+            child: const Text(
+              "Tutup",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
         ],
       ),
     );
@@ -185,7 +187,10 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(fontSize: 16)),
-          Text(score, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            score,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
@@ -226,14 +231,20 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
                       Navigator.pop(ctx);
                       Navigator.pop(context);
                     },
-                    child: const Text("Keluar", style: TextStyle(color: Colors.red)),
+                    child: const Text(
+                      "Keluar",
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
                 ],
               ),
             );
           },
         ),
-        title: const Text("Simulasi Ujian", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Simulasi Ujian",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 16),
@@ -248,7 +259,11 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
                 const SizedBox(width: 8),
                 Text(
                   _formatTime(remainingSeconds),
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               ],
             ),
@@ -271,11 +286,9 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
                 ],
               ),
             ),
-            
+
             // Konten Utama (Ganti-ganti sesuai fase)
-            Expanded(
-              child: _buildCurrentPhase(),
-            ),
+            Expanded(child: _buildCurrentPhase()),
           ],
         ),
       ),
@@ -285,12 +298,14 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
   Widget _buildPhaseIndicator(String label, int index) {
     bool isActive = index == currentPhase;
     bool isDone = index < currentPhase;
-    
+
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.blue : (isDone ? AppColors.green : Colors.grey[300]),
+          color: isActive
+              ? AppColors.blue
+              : (isDone ? AppColors.green : Colors.grey[300]),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Center(
@@ -299,7 +314,7 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
             style: TextStyle(
               color: isActive || isDone ? Colors.white : Colors.grey[600],
               fontWeight: FontWeight.bold,
-              fontSize: 12
+              fontSize: 12,
             ),
           ),
         ),
@@ -323,7 +338,9 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
           if (readingAnswers.length == 3) {
             setState(() => currentPhase = 1); // Pindah ke Menulis
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jawab semua soal dulu ya!")));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Jawab semua soal dulu ya!")),
+            );
           }
         },
       );
@@ -352,7 +369,9 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
           if (mathAnswers.length == 4) {
             _finishExam(); // SELESAI
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jawab semua soal dulu ya!")));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Jawab semua soal dulu ya!")),
+            );
           }
         },
       );
@@ -369,25 +388,42 @@ class _ExamReadingView extends StatelessWidget {
   final Function(int, int) onAnswer;
   final VoidCallback onNext;
 
-  const _ExamReadingView({required this.questions, required this.answers, required this.onAnswer, required this.onNext});
+  const _ExamReadingView({
+    required this.questions,
+    required this.answers,
+    required this.onAnswer,
+    required this.onNext,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        const Text("Bagian 1: Membaca", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const Text(
+          "Bagian 1: Membaca",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 16),
         ...List.generate(questions.length, (index) {
           final q = questions[index];
           return Container(
             margin: const EdgeInsets.only(bottom: 24),
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Soal ${index + 1}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue)),
+                Text(
+                  "Soal ${index + 1}",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.blue,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Text(q.text, style: const TextStyle(fontSize: 16)),
                 const SizedBox(height: 12),
@@ -399,13 +435,24 @@ class _ExamReadingView extends StatelessWidget {
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.blue.withOpacity(0.1) : Colors.grey[50],
+                        color: isSelected
+                            ? AppColors.blue.withOpacity(0.1)
+                            : Colors.grey[50],
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: isSelected ? AppColors.blue : Colors.grey[300]!),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.blue
+                              : Colors.grey[300]!,
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_off, color: isSelected ? AppColors.blue : Colors.grey),
+                          Icon(
+                            isSelected
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_off,
+                            color: isSelected ? AppColors.blue : Colors.grey,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(child: Text(q.options[optIndex])),
                         ],
@@ -419,8 +466,15 @@ class _ExamReadingView extends StatelessWidget {
         }),
         ElevatedButton(
           onPressed: onNext,
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.blue, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16)),
-          child: const Text("Lanjut ke Menulis", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.blue,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          child: const Text(
+            "Lanjut ke Menulis",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
         ),
         const SizedBox(height: 40),
       ],
@@ -437,30 +491,54 @@ class _ExamMathView extends StatelessWidget {
   final Function(int, int) onAnswer;
   final VoidCallback onFinish;
 
-  const _ExamMathView({required this.questions, required this.answers, required this.onAnswer, required this.onFinish});
+  const _ExamMathView({
+    required this.questions,
+    required this.answers,
+    required this.onAnswer,
+    required this.onFinish,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        const Text("Bagian 3: Berhitung", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const Text(
+          "Bagian 3: Berhitung",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 16),
         ...List.generate(questions.length, (index) {
           final q = questions[index];
           return Container(
             margin: const EdgeInsets.only(bottom: 24),
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Soal ${index + 1}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.blue)),
+                Text(
+                  "Soal ${index + 1}",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.blue,
+                  ),
+                ),
                 const SizedBox(height: 8),
-                if(q.visual != null) ...[
-                   Center(child: Text(q.visual!, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
-                   const SizedBox(height: 8),
-                ],
+                Center(
+                  child: Text(
+                    q.visual,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Text(q.questionText, style: const TextStyle(fontSize: 16)),
                 const SizedBox(height: 12),
                 Wrap(
@@ -474,12 +552,24 @@ class _ExamMathView extends StatelessWidget {
                         width: MediaQuery.of(context).size.width / 2 - 40,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.blue.withOpacity(0.1) : Colors.grey[50],
+                          color: isSelected
+                              ? AppColors.blue.withOpacity(0.1)
+                              : Colors.grey[50],
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: isSelected ? AppColors.blue : Colors.grey[300]!),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.blue
+                                : Colors.grey[300]!,
+                          ),
                         ),
                         alignment: Alignment.center,
-                        child: Text(q.options[optIndex], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        child: Text(
+                          q.options[optIndex],
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     );
                   }),
@@ -490,8 +580,15 @@ class _ExamMathView extends StatelessWidget {
         }),
         ElevatedButton(
           onPressed: onFinish,
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.green, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16)),
-          child: const Text("Selesai Ujian", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.green,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          child: const Text(
+            "Selesai Ujian",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
         ),
         const SizedBox(height: 40),
       ],
@@ -514,7 +611,7 @@ class _ExamWritingView extends StatefulWidget {
 
 class _ExamWritingViewState extends State<_ExamWritingView> {
   int currentIndex = 0;
-  
+
   @override
   Widget build(BuildContext context) {
     if (currentIndex >= widget.steps.length) {
@@ -525,13 +622,24 @@ class _ExamWritingViewState extends State<_ExamWritingView> {
           children: [
             const Icon(Icons.check_circle, size: 80, color: AppColors.green),
             const SizedBox(height: 16),
-            const Text("Sesi Menulis Selesai!", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text(
+              "Sesi Menulis Selesai!",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => widget.onCompleted(widget.steps.length),
-              style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
-              child: const Text("Lanjut ke Berhitung", style: TextStyle(fontSize: 18)),
-            )
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+              ),
+              child: const Text(
+                "Lanjut ke Berhitung",
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
           ],
         ),
       );
@@ -542,7 +650,10 @@ class _ExamWritingViewState extends State<_ExamWritingView> {
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text("Bagian 2: Menulis (${currentIndex + 1}/3)", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          child: Text(
+            "Bagian 2: Menulis (${currentIndex + 1}/3)",
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
         ),
         Expanded(
           child: ClipRect(
