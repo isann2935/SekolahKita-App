@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/colors.dart';
+import '../../constants/shop_data.dart';
 
 class AchievementsScreen extends StatelessWidget {
   final String userName;
@@ -35,122 +36,15 @@ class AchievementsScreen extends StatelessWidget {
     final baseFaces = ['😊', '😎', '🤠', '🥳', '😐', '👧', '👦', '🐶', '🐱'];
 
     // Data Lencana (Trofi)
-    final allBadges = [
-      {
-        'id': 'beginner',
-        'name': 'Pemula',
-        'emoji': '🎯',
-        'color': AppColors.yellow,
-      },
-      {
-        'id': 'reader',
-        'name': 'Pembaca',
-        'emoji': '📚',
-        'color': const Color(0xFFFF6B9D),
-      },
-      {
-        'id': 'fast',
-        'name': 'Cepat',
-        'emoji': '⚡',
-        'color': const Color(0xFF4ECDC4),
-      },
-      {
-        'id': 'streak',
-        'name': 'Rajin',
-        'emoji': '🔥',
-        'color': AppColors.orange,
-      },
-      {
-        'id': 'writer',
-        'name': 'Penulis',
-        'emoji': '✏️',
-        'color': const Color(0xFFC7CEEA),
-      },
-      {
-        'id': 'math',
-        'name': 'Matematika',
-        'emoji': '🧮',
-        'color': const Color(0xFFA8E6CF),
-      },
-      {
-        'id': 'master',
-        'name': 'Master',
-        'emoji': '👑',
-        'color': AppColors.yellow,
-      },
-      {
-        'id': 'genius',
-        'name': 'Jenius',
-        'emoji': '🧠',
-        'color': const Color(0xFFFF6B9D),
-      },
-    ];
-
+    final allBadges = ALL_BADGES;
     // Data Toko
-    final shopItems = [
-      {
-        'id': 'hat1',
-        'name': 'Topi Merah',
-        'emoji': '🎩',
-        'cost': 50,
-        'type': 'hat',
-        'offset_y': -55.0,
-      },
-      {
-        'id': 'hat2',
-        'name': 'Mahkota',
-        'emoji': '👑',
-        'cost': 100,
-        'type': 'hat',
-        'offset_y': -60.0,
-      },
-      {
-        'id': 'hat3',
-        'name': 'Wisuda',
-        'emoji': '🎓',
-        'cost': 75,
-        'type': 'hat',
-        'offset_y': -50.0,
-      },
-      {
-        'id': 'glasses1',
-        'name': 'Kacamata',
-        'emoji': '👓',
-        'cost': 30,
-        'type': 'glasses',
-        'offset_y': -5.0,
-      },
-      {
-        'id': 'glasses2',
-        'name': 'Hitam',
-        'emoji': '🕶️',
-        'cost': 50,
-        'type': 'glasses',
-        'offset_y': -5.0,
-      },
-      {
-        'id': 'glasses3',
-        'name': 'Selam',
-        'emoji': '🥽',
-        'cost': 45,
-        'type': 'glasses',
-        'offset_y': -5.0,
-      },
-    ];
-
-    // Helper
-    Map<String, dynamic> getItemData(String? id) {
-      if (id == null) return {'emoji': '', 'offset_y': 0.0};
-      return shopItems.firstWhere(
-        (e) => e['id'] == id,
-        orElse: () => {'emoji': '', 'offset_y': 0.0},
-      );
-    }
+    final shopItems = SHOP_ITEMS;
 
     void showEditNameDialog() {
       final TextEditingController controller = TextEditingController(
         text: userName,
       );
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -164,6 +58,7 @@ class AchievementsScreen extends StatelessWidget {
           content: TextField(
             controller: controller,
             autofocus: true,
+            maxLength: AppDimensions.maxNameLength,
             decoration: InputDecoration(
               hintText: "Masukkan nama baru...",
               filled: true,
@@ -172,6 +67,7 @@ class AchievementsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
+              helperText: 'Huruf dan spasi saja',
             ),
           ),
           actions: [
@@ -181,9 +77,40 @@ class AchievementsScreen extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                if (controller.text.isNotEmpty) {
-                  onChangeName(controller.text.trim());
+                final newName = controller.text.trim();
+
+                // Validate name
+                final error = ValidationRules.getNameError(newName);
+
+                if (error != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(error),
+                      backgroundColor: AppColors.red,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  onChangeName(newName);
                   Navigator.pop(context);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Nama berhasil diubah! ✨'),
+                      backgroundColor: AppColors.green,
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Gagal mengubah nama'),
+                      backgroundColor: AppColors.red,
+                    ),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -276,27 +203,18 @@ class AchievementsScreen extends StatelessWidget {
                           currentFace,
                           style: const TextStyle(fontSize: 90, height: 1),
                         ),
-                        if (equippedGlasses != null)
-                          Transform.translate(
-                            offset: Offset(
-                              0,
-                              getItemData(equippedGlasses)['offset_y'],
-                            ),
-                            child: Text(
-                              getItemData(equippedGlasses)['emoji'],
-                              style: const TextStyle(fontSize: 50, height: 1),
-                            ),
+                        if (equippedGlasses != null &&
+                            equippedGlasses!.isNotEmpty)
+                          _buildAccessoryLayer(
+                            id: equippedGlasses!,
+                            size: 50,
+                            shopItems: shopItems,
                           ),
-                        if (equippedHat != null)
-                          Transform.translate(
-                            offset: Offset(
-                              0,
-                              getItemData(equippedHat)['offset_y'],
-                            ),
-                            child: Text(
-                              getItemData(equippedHat)['emoji'],
-                              style: const TextStyle(fontSize: 60, height: 1),
-                            ),
+                        if (equippedHat != null && equippedHat!.isNotEmpty)
+                          _buildAccessoryLayer(
+                            id: equippedHat!,
+                            size: 60,
+                            shopItems: shopItems,
                           ),
                       ],
                     ),
@@ -315,7 +233,7 @@ class AchievementsScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppDimensions.spacingXSmall),
                     GestureDetector(
                       onTap: showEditNameDialog,
                       child: Container(
@@ -369,7 +287,7 @@ class AchievementsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
-                  height: 70,
+                  height: AppDimensions.faceListHeight,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: baseFaces.length,
@@ -377,7 +295,25 @@ class AchievementsScreen extends StatelessWidget {
                       final face = baseFaces[index];
                       final isSelected = face == currentFace;
                       return GestureDetector(
-                        onTap: () => onChangeFace(face),
+                        onTap: () {
+                          try {
+                            onChangeFace(face);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Wajah berhasil diubah! 😊'),
+                                backgroundColor: AppColors.green,
+                                duration: Duration(seconds: 1),
+                              ),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Gagal mengubah wajah'),
+                                backgroundColor: AppColors.red,
+                              ),
+                            );
+                          }
+                        },
                         child: Container(
                           margin: const EdgeInsets.only(right: 12),
                           padding: const EdgeInsets.all(12),
@@ -402,22 +338,23 @@ class AchievementsScreen extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: AppDimensions.spacingLarge),
 
+                const SizedBox(height: AppDimensions.spacingXLarge),
                 // 3. TOKO AKSESORIS
                 const Text(
                   "Aksesoris",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppDimensions.spacingSmall),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 1.4,
+                    crossAxisCount: AppDimensions.gridCrossCount,
+                    mainAxisSpacing: AppDimensions.gridSpacing,
+                    crossAxisSpacing: AppDimensions.gridSpacing,
+                    childAspectRatio: AppDimensions.gridAspectRatio,
                   ),
                   itemCount: shopItems.length,
                   itemBuilder: (context, index) {
@@ -430,106 +367,149 @@ class AchievementsScreen extends StatelessWidget {
                         (type == 'hat' && equippedHat == id) ||
                         (type == 'glasses' && equippedGlasses == id);
 
-                    return Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isEquipped
-                            ? const Color(0xFFF0FDF4)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: isEquipped
-                            ? Border.all(color: AppColors.green, width: 2)
-                            : null,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            item['emoji'] as String,
-                            style: const TextStyle(fontSize: 32),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                item['name'] as String,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        if (!isOwned) {
+                          // Belum punya → Beli
+                          try {
+                            onBuyItem(id, cost);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Berhasil membeli item! 🎉'),
+                                backgroundColor: AppColors.green,
+                                duration: Duration(seconds: 1),
                               ),
-                              if (!isOwned)
-                                GestureDetector(
-                                  onTap: () => onBuyItem(id, cost),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.yellow,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.star, size: 10),
-                                        Text(
-                                          " $cost",
-                                          style: const TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              else
-                                GestureDetector(
-                                  onTap: () => onEquipItem(id, type),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isEquipped
-                                          ? AppColors.red
-                                          : AppColors.green,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      isEquipped ? "Lepas" : "Pakai",
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Bintang tidak cukup! ⭐'),
+                                backgroundColor: AppColors.red,
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        } else {
+                          // Sudah punya → Toggle equip/unequip
+                          try {
+                            onEquipItem(id, type);
+                            final action = isEquipped ? 'Dilepas' : 'Dipasang';
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Item $action! ✨'),
+                                backgroundColor: AppColors.green,
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Gagal mengubah item'),
+                                backgroundColor: AppColors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isEquipped
+                              ? const Color(0xFFF0FDF4)
+                              : (isOwned ? Colors.grey.shade100 : Colors.white),
+                          borderRadius: BorderRadius.circular(20),
+                          border: isEquipped
+                              ? Border.all(color: AppColors.green, width: 2)
+                              : null,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              item['emoji'] as String,
+                              style: const TextStyle(fontSize: 32),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item['name'] as String,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            if (!isOwned)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.yellow,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.star, size: 10),
+                                    Text(
+                                      " $cost",
                                       style: const TextStyle(
-                                        color: Colors.white,
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
+                                  ],
+                                ),
+                              )
+                            else
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isEquipped
+                                      ? AppColors.red
+                                      : AppColors.green,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  isEquipped ? "Lepas" : "Pakai",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                            ],
-                          ),
-                        ],
+                              ),
+                          ],
+                        ),
                       ),
                     );
                   },
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: AppDimensions.spacingXLarge),
 
                 // --- 4. LEMARI TROFI (DITAMBAHKAN KEMBALI) ---
                 Row(
                   children: const [
                     Icon(Icons.emoji_events, color: AppColors.yellow),
-                    SizedBox(width: 8),
+                    SizedBox(width: AppDimensions.spacingXSmall),
                     Text(
                       "Lemari Trofi",
                       style: TextStyle(
@@ -539,14 +519,14 @@ class AchievementsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppDimensions.spacingSmall),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
+                    mainAxisSpacing: AppDimensions.gridSpacing,
+                    crossAxisSpacing: AppDimensions.gridSpacing,
                     childAspectRatio: 0.8,
                   ),
                   itemCount: allBadges.length,
@@ -586,7 +566,7 @@ class AchievementsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppDimensions.spacingXSmall),
                         Text(
                           badge['name'] as String,
                           style: TextStyle(
@@ -600,11 +580,31 @@ class AchievementsScreen extends StatelessWidget {
                   },
                 ),
 
-                const SizedBox(height: 100),
+                const SizedBox(height: AppDimensions.bottomPadding),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAccessoryLayer({
+    required String id,
+    required double size,
+    required List<Map<String, dynamic>> shopItems,
+  }) {
+    final item = shopItems.firstWhere((e) => e['id'] == id, orElse: () => {});
+
+    if (item.isEmpty || (item['emoji'] as String).isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Transform.translate(
+      offset: Offset(0, item['offset_y'] as double),
+      child: Text(
+        item['emoji'] as String,
+        style: TextStyle(fontSize: size, height: 1),
       ),
     );
   }
