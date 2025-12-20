@@ -43,7 +43,7 @@ class _MainWrapperState extends State<MainWrapper> {
   String? equippedHat;
   String? equippedGlasses;
   
-  // Progress (Menyimpan level tertinggi tiap pelajaran)
+  // Progress Map (Menyimpan level tertinggi. Contoh: "Membaca_mudah": 2)
   Map<String, int> progressMap = {};
 
   @override
@@ -60,6 +60,7 @@ class _MainWrapperState extends State<MainWrapper> {
     final subjects = ["Membaca", "Menulis", "Berhitung"];
     final difficulties = ["mudah", "sulit"];
     final Map<String, int> loadedProgress = {};
+    
     for (var subject in subjects) {
       for (var difficulty in difficulties) {
         final key = "${subject}_$difficulty";
@@ -116,6 +117,7 @@ class _MainWrapperState extends State<MainWrapper> {
     return progressMap[key] ?? 0;
   }
 
+  // 🔥 UPDATE PROGRESS (DIPERBAIKI)
   Future<void> _updateProgress(String subject, String difficulty, int completedLevel) async {
     final key = "${subject}_$difficulty";
     final currentProgress = progressMap[key] ?? 0;
@@ -123,7 +125,10 @@ class _MainWrapperState extends State<MainWrapper> {
     // Hanya update jika level yang diselesaikan lebih tinggi
     if (completedLevel > currentProgress) {
       setState(() {
-        progressMap[key] = completedLevel;
+        // PENTING: Buat map baru agar UI mendeteksi perubahan (Deep Copy logic)
+        final newMap = Map<String, int>.from(progressMap);
+        newMap[key] = completedLevel;
+        progressMap = newMap;
       });
       await _saveData();
     }
@@ -187,11 +192,9 @@ class _MainWrapperState extends State<MainWrapper> {
     _saveData();
   }
 
-  // --- LOGIC UNLOCK BADGES ---
   void _checkAndUnlockBadges() {
     final newBadges = <String>[];
     
-    // Cek kriteria badge
     if (stars >= 10 && !earnedBadges.contains('first_score')) newBadges.add('first_score');
     if (_getProgress("Membaca", "mudah") >= 1 && !earnedBadges.contains('reader')) newBadges.add('reader');
     if (_getProgress("Menulis", "mudah") >= 1 && !earnedBadges.contains('writer')) newBadges.add('writer');
@@ -228,7 +231,7 @@ class _MainWrapperState extends State<MainWrapper> {
       );
     }
 
-    // 🔥 HITUNG TOTAL LEVEL SELESAI (Untuk Profil)
+    // Hitung total level untuk bar di Profil
     int totalLevelsDone = progressMap.values.fold(0, (sum, level) => sum + level);
 
     // --- DAFTAR HALAMAN (Pages) ---
@@ -240,6 +243,8 @@ class _MainWrapperState extends State<MainWrapper> {
         currentFace: currentFace,
         equippedHat: equippedHat,
         equippedGlasses: equippedGlasses,
+        // ✅ KIRIM DATA PROGRESS KE HOME SCREEN
+        subjectProgress: progressMap, 
         onSubjectSelect: (subject) {
           if (subject == "Menulis") {
             setState(() {
@@ -285,8 +290,8 @@ class _MainWrapperState extends State<MainWrapper> {
       ProfileScreen(
         userName: userName,
         stars: stars,
-        daysLearned: 1, // Bisa diganti logic hari berturut-turut nanti
-        completedLevels: totalLevelsDone, // ✅ Menggunakan data asli
+        daysLearned: 1,
+        completedLevels: totalLevelsDone, // ✅ Data Asli untuk Profil
         onEditName: _changeName,
         currentFace: currentFace,
         equippedHat: equippedHat,
@@ -364,12 +369,9 @@ class _MainWrapperState extends State<MainWrapper> {
       );
     }
 
-    // --- TAMPILAN UTAMA (BOTTOM NAV) ---
     return Scaffold(
       backgroundColor: AppColors.softTeal,
-      // Menggunakan List body agar halaman refresh saat tab diganti
       body: pages[_bottomNavIndex], 
-      
       bottomNavigationBar: CustomBottomNav(
         currentIndex: _bottomNavIndex,
         onTap: _onBottomNavTap,

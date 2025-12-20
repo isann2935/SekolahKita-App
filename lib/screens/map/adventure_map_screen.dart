@@ -50,14 +50,7 @@ class AdventureMapScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  CircleAvatar(
-                    backgroundColor: AppColors.blue,
-                    radius: 24,
-                    child: const Icon(
-                      Icons.volume_up_rounded,
-                      color: Colors.white,
-                    ),
-                  ),
+                  // ❌ Ikon Speaker dihapus dari sini
                 ],
               ),
             ),
@@ -153,36 +146,35 @@ class _LevelNode extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child:
-          Container(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    if (status != 'locked')
-                      BoxShadow(
-                        color: bgColor.withOpacity(0.4),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                  ],
-                  border: status == 'current'
-                      ? Border.all(color: Colors.white, width: 4)
-                      : null,
-                ),
-                child: Center(child: content),
-              )
-              .animate(target: status == 'current' ? 1 : 0)
-              .scale(
-                begin: const Offset(1, 1),
-                end: const Offset(1.1, 1.1),
-                duration: 1000.ms,
-                curve: Curves.easeInOut,
-              )
-              .then()
-              .scale(begin: const Offset(1.1, 1.1), end: const Offset(1, 1)),
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: bgColor,
+          shape: BoxShape.circle,
+          boxShadow: [
+            if (status != 'locked')
+              BoxShadow(
+                color: bgColor.withOpacity(0.4),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+          ],
+          border: status == 'current'
+              ? Border.all(color: Colors.white, width: 4)
+              : null,
+        ),
+        child: Center(child: content),
+      )
+      .animate(target: status == 'current' ? 1 : 0)
+      .scale(
+        begin: const Offset(1, 1),
+        end: const Offset(1.1, 1.1),
+        duration: 1000.ms,
+        curve: Curves.easeInOut,
+      )
+      .then()
+      .scale(begin: const Offset(1.1, 1.1), end: const Offset(1, 1)),
     );
   }
 }

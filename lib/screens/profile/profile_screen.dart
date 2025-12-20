@@ -92,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       vertical: 16,
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center, // Center title since icon is gone
                       children: [
                         const Text(
                           "Profil",
@@ -100,17 +100,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: Colors.white,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.settings,
-                            color: Colors.white,
                           ),
                         ),
                       ],
