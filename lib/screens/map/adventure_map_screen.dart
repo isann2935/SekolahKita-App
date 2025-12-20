@@ -65,8 +65,8 @@ class AdventureMapScreen extends StatelessWidget {
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.only(top: 20, bottom: 40),
-                // Membaca hanya punya 5 step, lainnya 10
-                itemCount: subject == "Membaca" ? 5 : 10,
+                // Membaca dan Berhitung punya 5 step, Menulis punya 10 step
+                itemCount: subject == "Menulis" ? 10 : 5,
                 itemBuilder: (context, index) {
                   final level = index + 1;
                   // Logika "Zig-Zag"
