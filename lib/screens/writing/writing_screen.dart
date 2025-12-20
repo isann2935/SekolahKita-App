@@ -118,7 +118,7 @@ class _WritingScreenState extends State<WritingScreen> {
       allUserPoints.addAll(stroke);
     }
 
-    if (allUserPoints.length < 20) {
+    if (allUserPoints.length < 15) {
       setState(() {
         _isCompleted = false;
         _showFeedback = true;
@@ -141,13 +141,8 @@ class _WritingScreenState extends State<WritingScreen> {
       guidePoints = _getLetterGuidePoints(currentLetter, center, letterSize);
     }
 
-    // Tolerance ULTRA KETAT! 
-    final tolerance = currentStep.isWordStep ? 12.0 : 15.0;
-
-    // === EXCESS DRAWING CHECK ===
-    // Jika user gambar terlalu banyak (lebih dari 150% panjang guide), kemungkinan besar huruf salah
-    final maxAllowedPoints = (guidePoints.length * 2.0).toInt();
-    final isExcessiveDrawing = allUserPoints.length > maxAllowedPoints;
+    // Tolerance untuk anak-anak
+    final tolerance = currentStep.isWordStep ? 22.0 : 30.0;
 
     // === ACCURACY CHECK ===
     // Berapa persen titik USER yang dekat dengan guide (harus on-track)
@@ -165,11 +160,12 @@ class _WritingScreenState extends State<WritingScreen> {
 
     // === COVERAGE CHECK ===
     // Berapa persen titik GUIDE yang sudah ditutupi oleh user
+    final coverageTolerance = currentStep.isWordStep ? 28.0 : 35.0;
     int guideCovered = 0;
     for (var guidePoint in guidePoints) {
       bool isCovered = allUserPoints.any((userPoint) {
         final distance = (userPoint - guidePoint).distance;
-        return distance <= tolerance;
+        return distance <= coverageTolerance;
       });
       if (isCovered) {
         guideCovered++;
@@ -177,65 +173,44 @@ class _WritingScreenState extends State<WritingScreen> {
     }
     final coverage = (guideCovered / guidePoints.length) * 100;
 
-    // === OFF-TRACK PENALTY (SANGAT KETAT) ===
-    // Hitung berapa banyak titik user yang JAUH dari guide (penalty)
-    int offTrackPoints = 0;
-    final offTrackTolerance = currentStep.isWordStep ? 18.0 : 22.0;
-    for (var userPoint in allUserPoints) {
-      bool isFarFromGuide = !guidePoints.any((guidePoint) {
-        final distance = (userPoint - guidePoint).distance;
-        return distance <= offTrackTolerance;
-      });
-      if (isFarFromGuide) {
-        offTrackPoints++;
-      }
-    }
-    final offTrackRatio = offTrackPoints / allUserPoints.length;
-
-    // === DRAWING EFFICIENCY CHECK ===
-    // Rasio titik yang berguna vs total titik - jika rendah, user gambar banyak yang tidak perlu
-    final drawingEfficiency = userPointsNearGuide / allUserPoints.length;
+    // === EXCESSIVE DRAWING CHECK ===
+    // Hanya berlaku jika accuracy rendah (< 60%)
+    // Jika accuracy tinggi, berarti user menggambar dengan benar meski banyak titik
+    final maxAllowedPoints = (guidePoints.length * 5.0).toInt();
+    final isExcessiveDrawing = allUserPoints.length > maxAllowedPoints && accuracy < 60;
 
     // Score calculation
-    final rawScore = (accuracy * 0.5 + coverage * 0.5);
-    // Penalty berat jika off-track atau drawing tidak efisien
-    final efficiencyPenalty = drawingEfficiency < 0.7 ? 0.7 : 1.0;
-    final excessPenalty = isExcessiveDrawing ? 0.6 : 1.0;
-    final offTrackPenalty = (1 - offTrackRatio).clamp(0.3, 1.0);
-    final finalScore = rawScore * efficiencyPenalty * excessPenalty * offTrackPenalty;
+    // Weighted: accuracy lebih penting (55%) karena mencegah coretan acak
+    final rawScore = (accuracy * 0.55 + coverage * 0.45);
     
     setState(() {
-      _accuracy = finalScore;
+      _accuracy = rawScore;
       _showFeedback = true;
       
-      // Kriteria ULTRA KETAT:
-      // - Accuracy >= 90% (hampir semua titik user harus on-track)
-      // - Coverage >= 85% (harus menutupi sebagian besar guide)
-      // - Off-track ratio <= 15% (sangat sedikit yang boleh di luar)
-      // - Drawing efficiency >= 70% (tidak boleh banyak goresan berlebihan)
-      // - Tidak boleh excessive drawing
-      final bool passAccuracy = accuracy >= 90;
-      final bool passCoverage = coverage >= 85;
-      final bool passOffTrack = offTrackRatio <= 0.15;
-      final bool passEfficiency = drawingEfficiency >= 0.70;
+      // Kriteria kelulusan:
+      // - Accuracy >= 65% (mayoritas titik user harus dekat guide - mencegah coretan acak)
+      // - Coverage >= 55% (harus menutupi lebih dari setengah guide points)
+      // - Tidak boleh excessive drawing (coretan terlalu banyak dengan accuracy rendah)
+      final bool passAccuracy = accuracy >= 65;
+      final bool passCoverage = coverage >= 55;
       final bool passExcess = !isExcessiveDrawing;
       
-      if (passAccuracy && passCoverage && passOffTrack && passEfficiency && passExcess) {
+      if (passAccuracy && passCoverage && passExcess) {
         _isCompleted = true;
-        if (finalScore >= 90) {
+        if (rawScore >= 85) {
           _feedbackMessage = 'Sempurna! 🌟';
-        } else if (finalScore >= 75) {
+        } else if (rawScore >= 70) {
           _feedbackMessage = 'Bagus sekali! ⭐';
         } else {
-          _feedbackMessage = 'Cukup baik! Lanjutkan! 👍';
+          _feedbackMessage = 'Bagus! Lanjutkan! 👍';
         }
       } else {
         _isCompleted = false;
-        if (isExcessiveDrawing || !passEfficiency) {
-          // User gambar terlalu banyak / huruf yang berbeda
+        if (isExcessiveDrawing) {
+          // User gambar terlalu banyak dengan accuracy rendah = coret-coret
           _feedbackMessage = 'Gambar HANYA huruf yang diminta! ❌';
-        } else if (!passOffTrack || !passAccuracy) {
-          // User gambar terlalu banyak di luar garis
+        } else if (!passAccuracy) {
+          // User gambar banyak di luar garis
           _feedbackMessage = 'Tetap di garis titik-titik! ✏️';
         } else if (!passCoverage) {
           // User belum menutupi cukup banyak garis guide
@@ -331,7 +306,7 @@ class _WritingScreenState extends State<WritingScreen> {
   }
 
   Widget _buildFeedback() {
-    final isSuccess = _accuracy >= 60;
+    final isSuccess = _isCompleted;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -404,14 +379,6 @@ class _WritingScreenState extends State<WritingScreen> {
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
-            ),
-          ),
-          CircleAvatar(
-            backgroundColor: AppColors.blue,
-            radius: 24,
-            child: const Icon(
-              Icons.volume_up_rounded,
-              color: Colors.white,
             ),
           ),
         ],

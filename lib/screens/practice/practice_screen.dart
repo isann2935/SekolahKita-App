@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import '../../theme/colors.dart';
 import '../question/question_screen.dart';
@@ -8,9 +9,67 @@ import '../writing/writing_screen.dart';
 import '../../data/reading_questions.dart';
 import '../../data/math_questions.dart';
 import 'exam_simulation_screen.dart';
+import '../../services/notification_service.dart';
 
-class PracticeScreen extends StatelessWidget {
+class PracticeScreen extends StatefulWidget {
   const PracticeScreen({super.key});
+
+  @override
+  State<PracticeScreen> createState() => _PracticeScreenState();
+}
+
+class _PracticeScreenState extends State<PracticeScreen> {
+  int _currentStreak = 0;
+  static const String _streakKey = 'streak_count';
+  static const String _lastActiveKey = 'last_active_date';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAndUpdateStreak();
+  }
+
+  Future<void> _loadAndUpdateStreak() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now();
+    final todayStr = '${today.year}-${today.month}-${today.day}';
+    
+    final lastActiveStr = prefs.getString(_lastActiveKey);
+    int streak = prefs.getInt(_streakKey) ?? 0;
+    
+    if (lastActiveStr == null) {
+      // Pertama kali membuka aplikasi
+      streak = 1;
+    } else {
+      final lastActive = _parseDate(lastActiveStr);
+      final difference = today.difference(lastActive).inDays;
+      
+      if (difference == 0) {
+        // Sudah aktif hari ini, streak tidak berubah
+      } else if (difference == 1) {
+        // Aktif kemarin, tambah streak
+        streak = (streak + 1).clamp(0, 7);
+      } else {
+        // Tidak aktif lebih dari 1 hari, reset streak
+        streak = 1;
+      }
+    }
+    
+    // Simpan data terbaru
+    await prefs.setString(_lastActiveKey, todayStr);
+    await prefs.setInt(_streakKey, streak);
+    
+    if (mounted) {
+      setState(() {
+        _currentStreak = streak;
+      });
+    }
+  }
+
+  DateTime _parseDate(String dateStr) {
+    final parts = dateStr.split('-');
+    return DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+  }
 
   // --- LOGIKA KUIS CAMPUR (URUT: BACA -> TULIS -> HITUNG) ---
   void _startMixedQuiz(BuildContext context) {
@@ -92,7 +151,8 @@ class PracticeScreen extends StatelessWidget {
           onComplete: (success) {
             Navigator.pop(context);
             if (success) {
-              // FINISH SEMUA
+              // FINISH SEMUA - tandai aktivitas selesai
+              NotificationService().markActivityCompleted();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text("🎉 SELAMAT! Kamu menaklukkan Kuis Campur!"),
@@ -124,6 +184,8 @@ class PracticeScreen extends StatelessWidget {
   }
 
   void _showDailySuccess(BuildContext context, String subject) {
+    // Tandai aktivitas selesai untuk cancel notifikasi hari ini
+    NotificationService().markActivityCompleted();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Hebat! Kuis Harian ($subject) Selesai! 🎉"), backgroundColor: AppColors.green));
   }
 
@@ -206,9 +268,24 @@ class PracticeScreen extends StatelessWidget {
                 const SizedBox(height: 32),
                 const Text("Pencapaian Target", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
-                const _ProgressCard(title: "Streak 7 Hari", emoji: "🔥", current: 5, total: 7, color: AppColors.orange),
-                const SizedBox(height: 12),
-                const _ProgressCard(title: "Master Membaca", emoji: "📚", current: 12, total: 20, color: Color(0xFFFF6B9D)),
+                _ProgressCard(title: "Streak 7 Hari", emoji: "🔥", current: _currentStreak, total: 7, color: AppColors.orange),
+                const SizedBox(height: 24),
+                // Tombol Test Notifikasi (bisa dihapus nanti)
+                ElevatedButton.icon(
+                  onPressed: () {
+                    NotificationService().showTestNotification();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("🔔 Notifikasi test dikirim! Cek notification bar."), backgroundColor: AppColors.blue),
+                    );
+                  },
+                  icon: const Icon(Icons.notifications_active),
+                  label: const Text("Test Notifikasi"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey.shade400,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  ),
+                ),
                 const SizedBox(height: 100),
               ],
             ),
@@ -218,6 +295,7 @@ class PracticeScreen extends StatelessWidget {
     );
   }
 }
+
 
 class _ActivityCard extends StatelessWidget {
   final String title;

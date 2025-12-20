@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../theme/colors.dart';
 import '../../services/user_progress_service.dart'; // ✅ PENTING: Untuk simpan statistik
+import '../../services/notification_service.dart'; // ✅ Untuk notifikasi
 import '../../data/reading_questions.dart';
 import '../../data/math_questions.dart';
 import '../../data/writing_data.dart';
@@ -108,6 +109,8 @@ class _ExamSimulationScreenState extends State<ExamSimulationScreen> {
     bool isPassed = totalScore >= 6;
     if (isPassed) {
       await UserProgressService.incrementMaterialCount();
+      // Tandai aktivitas selesai untuk cancel notifikasi
+      NotificationService().markActivityCompleted();
     }
 
     if (!mounted) return;
