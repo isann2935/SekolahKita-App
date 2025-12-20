@@ -9,6 +9,7 @@ import 'practice/practice_screen.dart';
 import 'achievements/achievements_screen.dart';
 import 'map/adventure_map_screen.dart';
 import 'question/question_screen.dart';
+import 'writing/writing_screen.dart';
 import 'onboarding_screen.dart';
 import 'profile/profile_screen.dart'; // Pastikan import ini ada
 
@@ -31,6 +32,7 @@ class _MainWrapperState extends State<MainWrapper> {
   String _currentFlow = 'root';
   String? selectedSubject;
   String? selectedDifficulty;
+  int currentLevel = 1;
 
   // Data Game
   List<String> earnedBadges = ['beginner'];
@@ -41,6 +43,9 @@ class _MainWrapperState extends State<MainWrapper> {
   String? equippedHat;
   String? equippedGlasses;
 
+  // Progress tracking: Map<"subject_difficulty", highestCompletedLevel>
+  Map<String, int> progressMap = {};
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +55,19 @@ class _MainWrapperState extends State<MainWrapper> {
   // --- LOGIC PENYIMPANAN DATA (OFFLINE) ---
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
+
+    // Load progress untuk semua kombinasi subject dan difficulty
+    final subjects = ["Membaca", "Menulis", "Berhitung"];
+    final difficulties = ["mudah", "sulit"];
+    final Map<String, int> loadedProgress = {};
+
+    for (var subject in subjects) {
+      for (var difficulty in difficulties) {
+        final key = "${subject}_$difficulty";
+        loadedProgress[key] = prefs.getInt(key) ?? 0;
+      }
+    }
+
     setState(() {
       hasOnboarded = prefs.getBool('hasOnboarded') ?? false;
       userName = prefs.getString('userName') ?? "Budi";
@@ -61,6 +79,8 @@ class _MainWrapperState extends State<MainWrapper> {
       currentFace = prefs.getString('currentFace') ?? '😊';
       equippedHat = prefs.getString('equippedHat');
       equippedGlasses = prefs.getString('equippedGlasses');
+
+      progressMap = loadedProgress;
 
       isLoading = false;
     });
@@ -86,6 +106,35 @@ class _MainWrapperState extends State<MainWrapper> {
     } else {
       await prefs.remove('equippedGlasses');
     }
+
+    // Save progress
+    progressMap.forEach((key, value) {
+      prefs.setInt(key, value);
+    });
+  }
+
+  // Get progress untuk subject dan difficulty tertentu
+  int _getProgress(String subject, String difficulty) {
+    final key = "${subject}_$difficulty";
+    return progressMap[key] ?? 0;
+  }
+
+  // Update progress setelah menyelesaikan level
+  Future<void> _updateProgress(
+    String subject,
+    String difficulty,
+    int completedLevel,
+  ) async {
+    final key = "${subject}_$difficulty";
+    final currentProgress = progressMap[key] ?? 0;
+
+    // Update hanya jika level yang diselesaikan lebih tinggi dari progress saat ini
+    if (completedLevel > currentProgress) {
+      setState(() {
+        progressMap[key] = completedLevel;
+      });
+      await _saveData();
+    }
   }
 
   // --- LOGIC GAME ---
@@ -101,6 +150,7 @@ class _MainWrapperState extends State<MainWrapper> {
     setState(() {
       selectedSubject = subject;
       selectedDifficulty = difficulty;
+      currentLevel = 1;
       _currentFlow = 'map';
     });
   }
@@ -162,43 +212,96 @@ class _MainWrapperState extends State<MainWrapper> {
     }
 
     if (!hasOnboarded) {
-      return OnboardingScreen(onStart: (name) {
-        setState(() {
-          userName = name;
-          hasOnboarded = true;
-        });
-        _saveData();
-      });
+      return OnboardingScreen(
+        onStart: (name) {
+          setState(() {
+            userName = name;
+            hasOnboarded = true;
+          });
+          _saveData();
+        },
+      );
     }
 
     if (_currentFlow == 'map') {
       return AdventureMapScreen(
         subject: selectedSubject!,
         difficulty: selectedDifficulty!,
+        highestCompletedLevel: _getProgress(
+          selectedSubject!,
+          selectedDifficulty!,
+        ),
         onBack: () => setState(() => _currentFlow = 'root'),
-        onLevelClick: () => setState(() => _currentFlow = 'question'),
+        onLevelClick: (level) => setState(() {
+          currentLevel = level;
+          if (selectedSubject == "Menulis") {
+            _currentFlow = 'writing';
+          } else {
+            _currentFlow = 'question';
+          }
+        }),
       );
-    } else if (_currentFlow == 'question') {
-      return QuestionScreen(
-        mode: selectedDifficulty!,
+    } else if (_currentFlow == 'writing') {
+      return WritingScreen(
+        step: currentLevel,
         onBack: () => setState(() => _currentFlow = 'map'),
-        onComplete: (correct) {
-          if (correct) {
+        onComplete: (canProceed) async {
+          if (canProceed) {
+            await _updateProgress("Menulis", "mudah", currentLevel);
             setState(() {
               stars += 10;
             });
-            _saveData();
+            await _saveData();
+
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (ctx) => FeedbackPopup(
+                onClose: () {
+                  Navigator.pop(ctx);
+                  setState(() => _currentFlow = 'map');
+                },
+              ),
+            );
+          } else {
+            setState(() => _currentFlow = 'map');
           }
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (ctx) => FeedbackPopup(
-              onClose: () {
-                Navigator.pop(ctx);
-                setState(() => _currentFlow = 'map');
-              },
-            ),
-          );
+        },
+      );
+    } else if (_currentFlow == 'question') {
+      return QuestionScreen(
+        subject: selectedSubject ?? "Berhitung",
+        level: currentLevel,
+        mode: selectedDifficulty ?? "mudah",
+        onBack: () => setState(() => _currentFlow = 'map'),
+        onComplete: (canProceed) async {
+          if (canProceed) {
+            // Update progress dan stars hanya jika step selesai dengan benar
+            await _updateProgress(
+              selectedSubject ?? "Berhitung",
+              selectedDifficulty ?? "mudah",
+              currentLevel,
+            );
+            setState(() {
+              stars += 10;
+            });
+            await _saveData();
+
+            // Tampilkan feedback popup hanya jika berhasil
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (ctx) => FeedbackPopup(
+                onClose: () {
+                  Navigator.pop(ctx);
+                  setState(() => _currentFlow = 'map');
+                },
+              ),
+            );
+          } else {
+            // Jika perlu retry, langsung kembali ke map tanpa update progress
+            setState(() => _currentFlow = 'map');
+          }
         },
       );
     }
@@ -216,22 +319,33 @@ class _MainWrapperState extends State<MainWrapper> {
             equippedHat: equippedHat,
             equippedGlasses: equippedGlasses,
             onSubjectSelect: (subject) {
-              showModalBottomSheet(
-                context: context,
-                backgroundColor: Colors.transparent,
-                builder: (ctx) => DifficultyModal(
-                  onSelect: (difficulty) {
-                    Navigator.pop(ctx);
-                    _goToMap(subject, difficulty);
-                  },
-                ),
-              );
+              if (subject == "Menulis") {
+                // Untuk Menulis, langsung ke map tanpa modal difficulty
+                setState(() {
+                  selectedSubject = "Menulis";
+                  selectedDifficulty = "mudah"; // Default untuk menulis
+                  currentLevel = 1;
+                  _currentFlow = 'map';
+                });
+              } else {
+                // Untuk Membaca dan Berhitung, tampilkan modal difficulty
+                showModalBottomSheet(
+                  context: context,
+                  backgroundColor: Colors.transparent,
+                  builder: (ctx) => DifficultyModal(
+                    onSelect: (difficulty) {
+                      Navigator.pop(ctx);
+                      _goToMap(subject, difficulty);
+                    },
+                  ),
+                );
+              }
             },
           ),
-          
+
           // Tab 1: Latihan
           const PracticeScreen(),
-          
+
           // Tab 2: Prestasi
           AchievementsScreen(
             badges: earnedBadges,
@@ -251,10 +365,10 @@ class _MainWrapperState extends State<MainWrapper> {
           ProfileScreen(
             userName: userName,
             stars: stars,
-            daysLearned: 1, 
+            daysLearned: 1,
             completedLevels: 0,
             onEditName: _changeName,
-            
+
             // --- DATA BARU DIKIRIM KE SINI ---
             currentFace: currentFace,
             equippedHat: equippedHat,

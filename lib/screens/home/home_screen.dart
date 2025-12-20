@@ -60,25 +60,44 @@ class HomeScreen extends StatelessWidget {
                           alignment: Alignment.center,
                           clipBehavior: Clip.none,
                           children: [
-                            Text(currentFace, style: const TextStyle(fontSize: 28, height: 1)),
-                            
+                            Text(
+                              currentFace,
+                              style: const TextStyle(fontSize: 28, height: 1),
+                            ),
+
                             // Kacamata Mini
                             if (equippedGlasses != null)
                               Transform.translate(
-                                offset: Offset(0, _getAccessoryData(equippedGlasses)['offset_y'] as double),
+                                offset: Offset(
+                                  0,
+                                  _getAccessoryData(equippedGlasses)['offset_y']
+                                      as double,
+                                ),
                                 child: Text(
-                                  _getAccessoryData(equippedGlasses)['emoji'] as String, 
-                                  style: const TextStyle(fontSize: 16, height: 1)
+                                  _getAccessoryData(equippedGlasses)['emoji']
+                                      as String,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    height: 1,
+                                  ),
                                 ),
                               ),
-                              
+
                             // Topi Mini
                             if (equippedHat != null)
                               Transform.translate(
-                                offset: Offset(0, _getAccessoryData(equippedHat)['offset_y'] as double),
+                                offset: Offset(
+                                  0,
+                                  _getAccessoryData(equippedHat)['offset_y']
+                                      as double,
+                                ),
                                 child: Text(
-                                  _getAccessoryData(equippedHat)['emoji'] as String, 
-                                  style: const TextStyle(fontSize: 20, height: 1)
+                                  _getAccessoryData(equippedHat)['emoji']
+                                      as String,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    height: 1,
+                                  ),
                                 ),
                               ),
                           ],
@@ -89,12 +108,18 @@ class HomeScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text("Halo,", style: TextStyle(color: Colors.grey)),
+                            const Text(
+                              "Halo,",
+                              style: TextStyle(color: Colors.grey),
+                            ),
                             Text(
                               userName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -104,16 +129,28 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(color: AppColors.yellow, borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.yellow,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   child: Row(
                     children: [
                       const Icon(Icons.star, color: AppColors.orange),
                       const SizedBox(width: 4),
-                      Text("$stars", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text(
+                        "$stars",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -123,20 +160,32 @@ class HomeScreen extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               children: [
-                const Text("Pilih Pelajaran", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                const Text(
+                  "Pilih Pelajaran",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 16),
                 _SubjectCard(
-                  title: "Membaca", emoji: "📖", color: AppColors.red, progress: 0.5,
+                  title: "Membaca",
+                  emoji: "📖",
+                  color: AppColors.red,
+                  progress: 0.5,
                   onTap: () => onSubjectSelect("Membaca"),
                 ).animate().fadeIn().slideY(begin: 0.2, end: 0),
                 const SizedBox(height: 16),
                 _SubjectCard(
-                  title: "Menulis", emoji: "✏️", color: AppColors.blue, progress: 0.3,
+                  title: "Menulis",
+                  emoji: "✏️",
+                  color: AppColors.blue,
+                  progress: 0.3,
                   onTap: () => onSubjectSelect("Menulis"),
                 ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.2, end: 0),
                 const SizedBox(height: 16),
                 _SubjectCard(
-                  title: "Berhitung", emoji: "🔢", color: AppColors.yellow, progress: 0.2,
+                  title: "Berhitung",
+                  emoji: "🔢",
+                  color: AppColors.yellow,
+                  progress: 0.2,
                   onTap: () => onSubjectSelect("Berhitung"),
                 ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
                 const SizedBox(height: 100),
@@ -176,7 +225,11 @@ class _SubjectCard extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
-            BoxShadow(color: color.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 5))
+            BoxShadow(
+              color: color.withOpacity(0.4),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
           ],
         ),
         child: Column(
@@ -184,31 +237,63 @@ class _SubjectCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  width: 60, height: 60,
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                  child: Center(child: Text(emoji, style: const TextStyle(fontSize: 30))),
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Center(
+                    child: Text(emoji, style: const TextStyle(fontSize: 30)),
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                      const Text("Ayo belajar!", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Text(
+                        "Ayo belajar!",
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
                     ],
                   ),
                 ),
-                const Icon(Icons.arrow_circle_right_rounded, color: Colors.white, size: 40)
+                const Icon(
+                  Icons.arrow_circle_right_rounded,
+                  color: Colors.white,
+                  size: 40,
+                ),
               ],
             ),
             const Spacer(),
             Container(
-              height: 8, width: double.infinity,
-              decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(4)),
+              height: 8,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(4),
+              ),
               alignment: Alignment.centerLeft,
               child: FractionallySizedBox(
-                widthFactor: progress, heightFactor: 1.0,
-                child: Container(decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                widthFactor: progress,
+                heightFactor: 1.0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
               ),
             ),
           ],

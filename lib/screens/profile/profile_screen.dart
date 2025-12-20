@@ -8,7 +8,7 @@ class ProfileScreen extends StatefulWidget {
   final int daysLearned;
   final int completedLevels;
   final Function(String) onEditName;
-  
+
   // Data Avatar Baru
   final String currentFace;
   final String? equippedHat;
@@ -86,7 +86,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   // Top Bar
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -104,8 +107,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: Colors.white.withOpacity(0.2),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.settings, color: Colors.white),
-                        )
+                          child: const Icon(
+                            Icons.settings,
+                            color: Colors.white,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -119,14 +125,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         height: 100,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white, // Ganti jadi putih agar emoji jelas
+                          color:
+                              Colors.white, // Ganti jadi putih agar emoji jelas
                           border: Border.all(color: Colors.white, width: 4),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.1),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
-                            )
+                            ),
                           ],
                         ),
                         child: Stack(
@@ -134,30 +141,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           clipBehavior: Clip.none,
                           children: [
                             // Wajah Dasar
-                            Text(widget.currentFace, style: const TextStyle(fontSize: 55, height: 1)),
-                            
+                            Text(
+                              widget.currentFace,
+                              style: const TextStyle(fontSize: 55, height: 1),
+                            ),
+
                             // Layer Kacamata
                             if (widget.equippedGlasses != null)
                               Transform.translate(
-                                offset: Offset(0, _getAccessoryData(widget.equippedGlasses)['offset_y'] as double),
+                                offset: Offset(
+                                  0,
+                                  _getAccessoryData(
+                                        widget.equippedGlasses,
+                                      )['offset_y']
+                                      as double,
+                                ),
                                 child: Text(
-                                  _getAccessoryData(widget.equippedGlasses)['emoji'] as String, 
-                                  style: const TextStyle(fontSize: 32, height: 1)
+                                  _getAccessoryData(
+                                        widget.equippedGlasses,
+                                      )['emoji']
+                                      as String,
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    height: 1,
+                                  ),
                                 ),
                               ),
 
                             // Layer Topi
                             if (widget.equippedHat != null)
                               Transform.translate(
-                                offset: Offset(0, _getAccessoryData(widget.equippedHat)['offset_y'] as double),
+                                offset: Offset(
+                                  0,
+                                  _getAccessoryData(
+                                        widget.equippedHat,
+                                      )['offset_y']
+                                      as double,
+                                ),
                                 child: Text(
-                                  _getAccessoryData(widget.equippedHat)['emoji'] as String, 
-                                  style: const TextStyle(fontSize: 40, height: 1)
+                                  _getAccessoryData(widget.equippedHat)['emoji']
+                                      as String,
+                                  style: const TextStyle(
+                                    fontSize: 40,
+                                    height: 1,
+                                  ),
                                 ),
                               ),
                           ],
                         ),
-                      ).animate().scale(curve: Curves.elasticOut, duration: 800.ms),
+                      ).animate().scale(
+                        curve: Curves.elasticOut,
+                        duration: 800.ms,
+                      ),
 
                       const SizedBox(height: 16),
 
@@ -177,14 +212,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 child: TextField(
                                   controller: _nameController,
                                   autofocus: true,
-                                  decoration: const InputDecoration(border: InputBorder.none),
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  decoration: const InputDecoration(
+                                    border: InputBorder.none,
+                                  ),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.check, color: AppColors.green),
+                                icon: const Icon(
+                                  Icons.check,
+                                  color: AppColors.green,
+                                ),
                                 onPressed: _saveName,
-                              )
+                              ),
                             ],
                           ),
                         )
@@ -209,9 +251,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   color: Colors.white.withOpacity(0.2),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.edit, color: Colors.white, size: 16),
+                                child: const Icon(
+                                  Icons.edit,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
                               ),
-                            )
+                            ),
                           ],
                         ),
                     ],
@@ -228,11 +274,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Row(
                   children: [
-                    _StatCard(title: "Bintang", value: "${widget.stars}", icon: Icons.star, color: AppColors.yellow, iconColor: AppColors.orange),
+                    _StatCard(
+                      title: "Bintang",
+                      value: "${widget.stars}",
+                      icon: Icons.star,
+                      color: AppColors.yellow,
+                      iconColor: AppColors.orange,
+                    ),
                     const SizedBox(width: 12),
-                    _StatCard(title: "Level", value: "${widget.completedLevels}", icon: Icons.emoji_events, color: AppColors.green, iconColor: Colors.white),
+                    _StatCard(
+                      title: "Level",
+                      value: "${widget.completedLevels}",
+                      icon: Icons.emoji_events,
+                      color: AppColors.green,
+                      iconColor: Colors.white,
+                    ),
                     const SizedBox(width: 12),
-                    _StatCard(title: "Hari", value: "${widget.daysLearned}", icon: Icons.calendar_today, color: const Color(0xFFFF6B9D), iconColor: Colors.white),
+                    _StatCard(
+                      title: "Hari",
+                      value: "${widget.daysLearned}",
+                      icon: Icons.calendar_today,
+                      color: const Color(0xFFFF6B9D),
+                      iconColor: Colors.white,
+                    ),
                   ],
                 ).animate().slideY(begin: 0.2, end: 0),
 
@@ -244,7 +308,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
                     ],
                   ),
                   child: Column(
@@ -254,7 +322,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: const [
                           Icon(Icons.military_tech, color: AppColors.yellow),
                           SizedBox(width: 8),
-                          Text("Lencana Prestasi", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text(
+                            "Lencana Prestasi",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -262,11 +336,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: const [
                           _BadgeItem(emoji: "🎯", label: "Pemula"),
-                          _BadgeItem(emoji: "🔥", label: "Semangat", isLocked: true),
-                          _BadgeItem(emoji: "⚡", label: "Cepat", isLocked: true),
-                          _BadgeItem(emoji: "👑", label: "Master", isLocked: true),
+                          _BadgeItem(
+                            emoji: "🔥",
+                            label: "Semangat",
+                            isLocked: true,
+                          ),
+                          _BadgeItem(
+                            emoji: "⚡",
+                            label: "Cepat",
+                            isLocked: true,
+                          ),
+                          _BadgeItem(
+                            emoji: "👑",
+                            label: "Master",
+                            isLocked: true,
+                          ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ).animate(delay: 200.ms).slideY(begin: 0.2, end: 0),
@@ -279,17 +365,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
                     ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Statistik Belajar", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const Text(
+                        "Statistik Belajar",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 16),
-                      _StatRow(label: "Total Pelajaran", value: "${widget.completedLevels} / 8"),
+                      _StatRow(
+                        label: "Total Pelajaran",
+                        value: "${widget.completedLevels} / 8",
+                      ),
                       const SizedBox(height: 12),
-                      const Text("Kemajuan", style: TextStyle(color: Colors.grey)),
+                      const Text(
+                        "Kemajuan",
+                        style: TextStyle(color: Colors.grey),
+                      ),
                       const SizedBox(height: 8),
                       Container(
                         height: 12,
@@ -299,10 +401,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         alignment: Alignment.centerLeft,
                         child: FractionallySizedBox(
-                          widthFactor: (widget.completedLevels / 8).clamp(0.0, 1.0),
+                          widthFactor: (widget.completedLevels / 8).clamp(
+                            0.0,
+                            1.0,
+                          ),
                           child: Container(
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(colors: [AppColors.green, Color(0xFF4ECDC4)]),
+                              gradient: const LinearGradient(
+                                colors: [AppColors.green, Color(0xFF4ECDC4)],
+                              ),
                               borderRadius: BorderRadius.circular(6),
                             ),
                           ),
@@ -311,7 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ).animate(delay: 400.ms).slideY(begin: 0.2, end: 0),
-                
+
                 const SizedBox(height: 100),
               ],
             ),
@@ -346,22 +453,29 @@ class _StatCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 4))
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               child: Icon(icon, color: iconColor, size: 20),
             ),
             const SizedBox(height: 8),
-            Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -374,7 +488,11 @@ class _BadgeItem extends StatelessWidget {
   final String label;
   final bool isLocked;
 
-  const _BadgeItem({required this.emoji, required this.label, this.isLocked = false});
+  const _BadgeItem({
+    required this.emoji,
+    required this.label,
+    this.isLocked = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -389,7 +507,9 @@ class _BadgeItem extends StatelessWidget {
               color: isLocked ? Colors.grey[200] : AppColors.yellow,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Center(child: Text(emoji, style: const TextStyle(fontSize: 24))),
+            child: Center(
+              child: Text(emoji, style: const TextStyle(fontSize: 24)),
+            ),
           ),
           const SizedBox(height: 6),
           Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
@@ -411,7 +531,10 @@ class _StatRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: const TextStyle(color: Colors.grey)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
       ],
     );
   }

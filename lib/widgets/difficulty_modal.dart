@@ -15,7 +15,8 @@ class DifficultyModal extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
         ),
-        child: SafeArea( // Tambahan SafeArea untuk HP berponi/notch
+        child: SafeArea(
+          // Tambahan SafeArea untuk HP berponi/notch
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -39,21 +40,21 @@ class DifficultyModal extends StatelessWidget {
                 style: TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 24),
-              
+
               _ModeButton(
-                title: "Belajar Dulu",
+                title: "Mudah",
                 subtitle: "Mode mudah dengan panduan",
                 color: AppColors.green,
                 icon: Icons.lightbulb_rounded,
-                onTap: () => onSelect('belajar'),
+                onTap: () => onSelect('mudah'),
               ),
               const SizedBox(height: 12),
               _ModeButton(
-                title: "Tantangan",
+                title: "Sulit",
                 subtitle: "+50% Bintang",
                 color: AppColors.orange,
                 icon: Icons.flash_on_rounded,
-                onTap: () => onSelect('tantangan'),
+                onTap: () => onSelect('sulit'),
               ),
               const SizedBox(height: 24),
             ],
@@ -88,12 +89,13 @@ class _ModeButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: [ // Menambahkan shadow tipis agar tombol lebih pop-up
+          boxShadow: [
+            // Menambahkan shadow tipis agar tombol lebih pop-up
             BoxShadow(
               color: color.withOpacity(0.3),
               blurRadius: 8,
               offset: const Offset(0, 4),
-            )
+            ),
           ],
         ),
         child: Row(
@@ -107,7 +109,8 @@ class _ModeButton extends StatelessWidget {
               child: Icon(icon, color: color, size: 30),
             ),
             const SizedBox(width: 16),
-            Expanded( // Expanded mencegah teks panjang menabrak kanan
+            Expanded(
+              // Expanded mencegah teks panjang menabrak kanan
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -121,10 +124,7 @@ class _ModeButton extends StatelessWidget {
                   ),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
