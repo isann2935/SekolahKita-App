@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../theme/colors.dart';
 import '../../data/reading_questions.dart';
-import '../../data/math_questions.dart'; // Pastikan ini ada
-import '../../services/user_progress_service.dart'; // ✅ 1. IMPORT SERVICE
+import '../../data/math_questions.dart';
+import '../../services/user_progress_service.dart';
 
 class QuestionScreen extends StatelessWidget {
   final String subject;
@@ -12,6 +12,10 @@ class QuestionScreen extends StatelessWidget {
   final VoidCallback onBack;
   final Function(bool) onComplete;
 
+  // --- PARAMETER BARU UNTUK KUIS CAMPUR ---
+  final List<ReadingQuestion>? customReadingData;
+  final List<MathQuestion>? customMathData;
+
   const QuestionScreen({
     super.key,
     required this.subject,
@@ -19,6 +23,8 @@ class QuestionScreen extends StatelessWidget {
     required this.mode,
     required this.onBack,
     required this.onComplete,
+    this.customReadingData, // Opsional
+    this.customMathData,    // Opsional
   });
 
   @override
@@ -40,7 +46,10 @@ class QuestionScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    "Level $level - $subject",
+                    // Jika custom data ada, judulnya "Kuis Campur"
+                    (customReadingData != null || customMathData != null)
+                        ? "Kuis Campur - $subject"
+                        : "Level $level - $subject",
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -58,30 +67,30 @@ class QuestionScreen extends StatelessWidget {
                   builder: (context) {
                     // LOGIKA MEMBACA
                     if (subject == "Membaca") {
-                      final stepIndex = (level - 1).clamp(0, 4);
-                      final isEasyMode = mode == "mudah";
-                      final stepQuestions = isEasyMode
-                          ? easyReadingSteps[stepIndex]
-                          : hardReadingSteps[stepIndex];
+                      // Gunakan customData jika ada, kalau tidak ambil dari Level
+                      final stepQuestions = customReadingData ?? 
+                          (mode == "mudah" 
+                              ? easyReadingSteps[(level - 1).clamp(0, 4)] 
+                              : hardReadingSteps[(level - 1).clamp(0, 4)]);
 
                       return _ReadingStepCard(
                         questions: stepQuestions,
-                        isEasyMode: isEasyMode,
+                        isEasyMode: mode == "mudah",
                         onFinish: (bool canProceed) => onComplete(canProceed),
                       );
                     }
 
-                    // LOGIKA BERHITUNG (MATEMATIKA) - Sesuai kodingan kamu
+                    // LOGIKA BERHITUNG
                     if (subject == "Berhitung") {
-                      final stepIndex = (level - 1).clamp(0, 4);
-                      final isEasyMode = mode == "mudah";
-                      final mathQuestions = isEasyMode
-                          ? easyMathSteps[stepIndex]
-                          : hardMathSteps[stepIndex];
+                      // Gunakan customData jika ada, kalau tidak ambil dari Level
+                      final mathQuestions = customMathData ?? 
+                          (mode == "mudah" 
+                              ? easyMathSteps[(level - 1).clamp(0, 4)] 
+                              : hardMathSteps[(level - 1).clamp(0, 4)]);
 
                       return _MathStepCard(
                         questions: mathQuestions,
-                        isEasyMode: isEasyMode,
+                        isEasyMode: mode == "mudah",
                         onFinish: (bool canProceed) => onComplete(canProceed),
                       );
                     }
@@ -97,6 +106,11 @@ class QuestionScreen extends StatelessWidget {
     );
   }
 }
+
+// ... (Bagian _AnswerButton, _MathStepCard, _ReadingStepCard SAMA PERSIS seperti sebelumnya)
+// Agar file tidak terlalu panjang di chat, pastikan kamu TETAP MENYIMPAN class _AnswerButton, 
+// _MathStepCard, dan _ReadingStepCard di bawah sini ya.
+// Isinya tidak perlu diubah, karena mereka hanya menerima List<Question> yang sudah kita siapkan di atas.
 
 // =========================================================
 // WIDGET JAWABAN (REUSABLE)
@@ -224,7 +238,7 @@ class _AnswerButton extends StatelessWidget {
 }
 
 // =========================================================
-// KARTU SOAL BERHITUNG / MATH (DINAMIS - SESUAI KODINGANMU)
+// KARTU SOAL BERHITUNG / MATH
 // =========================================================
 class _MathStepCard extends StatefulWidget {
   final List<MathQuestion> questions;
@@ -318,7 +332,6 @@ class _MathStepCardState extends State<_MathStepCard> {
                 ),
               ),
               const SizedBox(height: 20),
-              // Pesan Singkat
               Text(
                 needRetry 
                   ? 'Kamu salah $wrongCount soal. Ayo coba lagi!' 
@@ -334,14 +347,12 @@ class _MathStepCardState extends State<_MathStepCard> {
         ),
         actions: [
           TextButton(
-            onPressed: () async { // ✅ ASYNC
+            onPressed: () async {
               Navigator.pop(ctx);
               if (needRetry) {
                 setState(() { selectedAnswers.clear(); showFeedback.clear(); });
               } else {
-                // ✅ 2. SIMPAN PROGRESS (BERHITUNG)
                 await UserProgressService.incrementMaterialCount();
-                
                 widget.onFinish(true);
               }
             },
@@ -380,7 +391,6 @@ class _MathStepCardState extends State<_MathStepCard> {
               const Text("Hitung dan pilih jawaban yang benar:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               
-              // LOOP SOAL MATEMATIKA
               ...List.generate(widget.questions.length, (index) {
                 final q = widget.questions[index];
                 final selectedIndex = selectedAnswers[index];
@@ -394,7 +404,6 @@ class _MathStepCardState extends State<_MathStepCard> {
                     children: [
                       Text("Soal ${index + 1}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.blue)),
                       const SizedBox(height: 8),
-                      // Visual Soal (Gambar/Teks Besar)
                       if (q.visual != null) ...[
                         Container(
                           width: double.infinity,
@@ -407,7 +416,6 @@ class _MathStepCardState extends State<_MathStepCard> {
                       Text(q.questionText, style: const TextStyle(fontSize: 16, height: 1.5)),
                       const SizedBox(height: 12),
                       
-                      // Opsi Jawaban
                       ...List.generate(q.options.length, (optIndex) {
                         final isSelected = selectedIndex == optIndex;
                         final isCorrect = optIndex == q.correctIndex;
@@ -457,7 +465,7 @@ class _MathStepCardState extends State<_MathStepCard> {
 }
 
 // =========================================================
-// KARTU SOAL MEMBACA (DINAMIS - SESUAI KODINGANMU)
+// KARTU SOAL MEMBACA
 // =========================================================
 class _ReadingStepCard extends StatefulWidget {
   final List<ReadingQuestion> questions;
@@ -567,14 +575,12 @@ class _ReadingStepCardState extends State<_ReadingStepCard> {
         ),
         actions: [
           TextButton(
-            onPressed: () async { // ✅ ASYNC
+            onPressed: () async {
               Navigator.pop(ctx);
               if (needRetry) {
                 setState(() { selectedAnswers.clear(); showFeedback.clear(); });
               } else {
-                // ✅ 3. SIMPAN PROGRESS (MEMBACA)
                 await UserProgressService.incrementMaterialCount();
-                
                 widget.onFinish(true);
               }
             },
@@ -613,7 +619,6 @@ class _ReadingStepCardState extends State<_ReadingStepCard> {
               const Text("Baca teks dan pilih jawaban yang benar:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               
-              // LOOP SOAL MEMBACA
               ...List.generate(widget.questions.length, (index) {
                 final q = widget.questions[index];
                 final selectedIndex = selectedAnswers[index];
@@ -648,6 +653,35 @@ class _ReadingStepCardState extends State<_ReadingStepCard> {
                           ),
                         );
                       }),
+                      
+                      if (isAnswered && !isCorrectAnswer)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.red, width: 2),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.cancel, color: AppColors.red, size: 20),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Jawaban salah. Coba lagi!',
+                                    style: TextStyle(
+                                      color: AppColors.red,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 );
