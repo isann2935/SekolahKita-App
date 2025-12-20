@@ -205,6 +205,71 @@ class _MainWrapperState extends State<MainWrapper> {
     );
   }
 
+  // --- LOGIC UNLOCK BADGES ---
+  void _checkAndUnlockBadges() {
+    final newBadges = <String>[];
+
+    // Badge 1: first_score - Dapatkan 10 bintang
+    if (stars >= 10 && !earnedBadges.contains('first_score')) {
+      newBadges.add('first_score');
+      _showSnack("🎖️ Badge 'Bintang Pertama' terbuka!", AppColors.green);
+    }
+
+    // Badge 2: reader - Selesaikan level Membaca
+    if (_getProgress("Membaca", "mudah") >= 1 &&
+        !earnedBadges.contains('reader')) {
+      newBadges.add('reader');
+      _showSnack("📚 Badge 'Pembaca' terbuka!", AppColors.green);
+    }
+
+    // Badge 3: writer - Selesaikan level Menulis
+    if (_getProgress("Menulis", "mudah") >= 1 &&
+        !earnedBadges.contains('writer')) {
+      newBadges.add('writer');
+      _showSnack("✏️ Badge 'Penulis' terbuka!", AppColors.green);
+    }
+
+    // Badge 4: mathematician - Selesaikan level Berhitung
+    if (_getProgress("Berhitung", "mudah") >= 1 &&
+        !earnedBadges.contains('mathematician')) {
+      newBadges.add('mathematician');
+      _showSnack("🔢 Badge 'Matematikawan' terbuka!", AppColors.green);
+    }
+
+    // Badge 5: speedster - Dapatkan 50 bintang (cepat berkembang)
+    if (stars >= 50 && !earnedBadges.contains('speedster')) {
+      newBadges.add('speedster');
+      _showSnack("⚡ Badge 'Cepat' terbuka!", AppColors.green);
+    }
+
+    // Badge 6: perfectionist - Selesaikan 5 level
+    final totalLevels = (progressMap.values.fold(0, (sum, val) => sum + val));
+    if (totalLevels >= 5 && !earnedBadges.contains('perfectionist')) {
+      newBadges.add('perfectionist');
+      _showSnack("💯 Badge 'Sempurna' terbuka!", AppColors.green);
+    }
+
+    // Badge 7: master - Selesaikan 10 level
+    if (totalLevels >= 10 && !earnedBadges.contains('master')) {
+      newBadges.add('master');
+      _showSnack("👑 Badge 'Master' terbuka!", AppColors.green);
+    }
+
+    // Badge 8: genius - Dapatkan 200 bintang (ultimate reward)
+    if (stars >= 200 && !earnedBadges.contains('genius')) {
+      newBadges.add('genius');
+      _showSnack("🧠 Badge 'Jenius' terbuka!", AppColors.green);
+    }
+
+    // Update state jika ada badge baru
+    if (newBadges.isNotEmpty) {
+      setState(() {
+        earnedBadges.addAll(newBadges);
+      });
+      _saveData();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -252,6 +317,7 @@ class _MainWrapperState extends State<MainWrapper> {
               stars += 10;
             });
             await _saveData();
+            _checkAndUnlockBadges(); // ✅ CHECK BADGES
 
             showDialog(
               context: context,
@@ -286,6 +352,7 @@ class _MainWrapperState extends State<MainWrapper> {
               stars += 10;
             });
             await _saveData();
+            _checkAndUnlockBadges(); // ✅ CHECK BADGES
 
             // Tampilkan feedback popup hanya jika berhasil
             showDialog(

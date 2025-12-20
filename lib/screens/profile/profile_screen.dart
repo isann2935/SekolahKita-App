@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../theme/colors.dart';
+import '../../services/user_progress_service.dart'; // 👈 Wajib import ini
 
 class ProfileScreen extends StatefulWidget {
   final String userName;
@@ -49,16 +50,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // Helper untuk Mapping Aksesoris (Disesuaikan untuk ukuran 100px)
+  // Helper untuk Mapping Aksesoris
   Map<String, dynamic> _getAccessoryData(String? id) {
     if (id == null) return {'emoji': '', 'offset_y': 0.0};
     const map = {
-      'hat1': {'emoji': '🎩', 'offset_y': -35.0}, // Topi Merah
-      'hat2': {'emoji': '👑', 'offset_y': -40.0}, // Mahkota
-      'hat3': {'emoji': '🎓', 'offset_y': -32.0}, // Wisuda
-      'glasses1': {'emoji': '👓', 'offset_y': -3.0}, // Kacamata Biasa
-      'glasses2': {'emoji': '🕶️', 'offset_y': -3.0}, // Hitam
-      'glasses3': {'emoji': '🥽', 'offset_y': -3.0}, // Selam
+      'hat1': {'emoji': '🎩', 'offset_y': -35.0},
+      'hat2': {'emoji': '👑', 'offset_y': -40.0},
+      'hat3': {'emoji': '🎓', 'offset_y': -32.0},
+      'glasses1': {'emoji': '👓', 'offset_y': -3.0},
+      'glasses2': {'emoji': '🕶️', 'offset_y': -3.0},
+      'glasses3': {'emoji': '🥽', 'offset_y': -3.0},
     };
     return map[id] ?? {'emoji': '', 'offset_y': 0.0};
   }
@@ -119,14 +120,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Avatar & Name
                   Column(
                     children: [
-                      // --- AVATAR DINAMIS (UPDATED) ---
+                      // --- AVATAR DINAMIS ---
                       Container(
                         width: 100,
                         height: 100,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color:
-                              Colors.white, // Ganti jadi putih agar emoji jelas
+                          color: Colors.white,
                           border: Border.all(color: Colors.white, width: 4),
                           boxShadow: [
                             BoxShadow(
@@ -152,14 +152,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 offset: Offset(
                                   0,
                                   _getAccessoryData(
-                                        widget.equippedGlasses,
-                                      )['offset_y']
+                                    widget.equippedGlasses,
+                                  )['offset_y']
                                       as double,
                                 ),
                                 child: Text(
                                   _getAccessoryData(
-                                        widget.equippedGlasses,
-                                      )['emoji']
+                                    widget.equippedGlasses,
+                                  )['emoji']
                                       as String,
                                   style: const TextStyle(
                                     fontSize: 32,
@@ -174,12 +174,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 offset: Offset(
                                   0,
                                   _getAccessoryData(
-                                        widget.equippedHat,
-                                      )['offset_y']
+                                    widget.equippedHat,
+                                  )['offset_y']
                                       as double,
                                 ),
                                 child: Text(
-                                  _getAccessoryData(widget.equippedHat)['emoji']
+                                  _getAccessoryData(
+                                      widget.equippedHat)['emoji']
                                       as String,
                                   style: const TextStyle(
                                     fontSize: 40,
@@ -267,7 +268,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
 
-          // --- CONTENT SECTION (SAMA SEPERTI SEBELUMNYA) ---
+          // --- CONTENT SECTION ---
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(24),
@@ -302,6 +303,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 const SizedBox(height: 24),
 
+                // --- BAGIAN STATISTIK MATERI SELESAI (BARU) ---
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Statistik Belajar",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Menampilkan Data Materi Selesai
+                      FutureBuilder<int>(
+                        future: UserProgressService.getCompletedMaterials(),
+                        builder: (context, snapshot) {
+                          final count = snapshot.data ?? 0;
+                          return _StatRow(
+                            label: "Materi Selesai",
+                            value: "$count Pelajaran",
+                          );
+                        },
+                      ),
+                      
+                      const SizedBox(height: 12),
+                      
+                      // Progress Bar Statis (Contoh)
+                      const Text(
+                        "Kemajuan",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: (widget.completedLevels / 8).clamp(0.0, 1.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [AppColors.green, Color(0xFF4ECDC4)],
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // --- LENCANA PRESTASI ---
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -338,7 +411,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _BadgeItem(emoji: "🎯", label: "Pemula"),
                           _BadgeItem(
                             emoji: "🔥",
-                            label: "Semangat",
+                            label: "Rajin",
                             isLocked: true,
                           ),
                           _BadgeItem(
@@ -356,68 +429,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ).animate(delay: 200.ms).slideY(begin: 0.2, end: 0),
-
-                const SizedBox(height: 24),
-
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Statistik Belajar",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _StatRow(
-                        label: "Total Pelajaran",
-                        value: "${widget.completedLevels} / 8",
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        "Kemajuan",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        alignment: Alignment.centerLeft,
-                        child: FractionallySizedBox(
-                          widthFactor: (widget.completedLevels / 8).clamp(
-                            0.0,
-                            1.0,
-                          ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [AppColors.green, Color(0xFF4ECDC4)],
-                              ),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ).animate(delay: 400.ms).slideY(begin: 0.2, end: 0),
 
                 const SizedBox(height: 100),
               ],

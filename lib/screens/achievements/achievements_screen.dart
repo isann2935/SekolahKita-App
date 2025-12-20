@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../theme/colors.dart';
-import '../../constants/shop_data.dart';
+import '../../constants/shop_data.dart'; // Pastikan path ini benar sesuai strukturmu
+import '../../services/user_progress_service.dart'; // 👈 Import Service Penyimpanan
 
-class AchievementsScreen extends StatelessWidget {
+class AchievementsScreen extends StatefulWidget {
   final String userName;
   final List<String> badges;
   final int stars;
@@ -31,101 +32,104 @@ class AchievementsScreen extends StatelessWidget {
   });
 
   @override
+  State<AchievementsScreen> createState() => _AchievementsScreenState();
+}
+
+class _AchievementsScreenState extends State<AchievementsScreen> {
+  // --- STATE VARIABLES ---
+  int _completedMaterials = 0; // Data Materi Selesai
+  bool _isLoadingStats = true; // Status Loading
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStatistics(); // 👈 Load data saat layar dibuka
+  }
+
+  // Fungsi Load Data dari Service
+  Future<void> _loadStatistics() async {
+    final count = await UserProgressService.getCompletedMaterials();
+    if (mounted) {
+      setState(() {
+        _completedMaterials = count;
+        _isLoadingStats = false;
+      });
+    }
+  }
+
+  // Dialog Ganti Nama
+  void showEditNameDialog() {
+    final TextEditingController controller = TextEditingController(
+      text: widget.userName,
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          "Ganti Nama",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 12, // Sesuaikan max length
+          decoration: InputDecoration(
+            hintText: "Masukkan nama baru...",
+            filled: true,
+            fillColor: Colors.grey[100],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            helperText: 'Huruf dan spasi saja',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Batal", style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newName = controller.text.trim();
+              if (newName.isNotEmpty) {
+                widget.onChangeName(newName);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Nama berhasil diubah! ✨'),
+                    backgroundColor: AppColors.green,
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.green,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text("Simpan"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     // --- DATA ---
     final baseFaces = ['😊', '😎', '🤠', '🥳', '😐', '👧', '👦', '🐶', '🐱'];
-
-    // Data Lencana (Trofi)
-    final allBadges = ALL_BADGES;
-    // Data Toko
+    
+    // Ambil data dari constants (sesuaikan nama variabel constant kamu)
+    final allBadges = ALL_BADGES; 
     final shopItems = SHOP_ITEMS;
-
-    void showEditNameDialog() {
-      final TextEditingController controller = TextEditingController(
-        text: userName,
-      );
-
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Text(
-            "Ganti Nama",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            maxLength: AppDimensions.maxNameLength,
-            decoration: InputDecoration(
-              hintText: "Masukkan nama baru...",
-              filled: true,
-              fillColor: Colors.grey[100],
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              helperText: 'Huruf dan spasi saja',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Batal", style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final newName = controller.text.trim();
-
-                // Validate name
-                final error = ValidationRules.getNameError(newName);
-
-                if (error != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(error),
-                      backgroundColor: AppColors.red,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                  return;
-                }
-
-                try {
-                  onChangeName(newName);
-                  Navigator.pop(context);
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Nama berhasil diubah! ✨'),
-                      backgroundColor: AppColors.green,
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Gagal mengubah nama'),
-                      backgroundColor: AppColors.red,
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.green,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text("Simpan"),
-            ),
-          ],
-        ),
-      );
-    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F9FF),
@@ -200,19 +204,20 @@ class AchievementsScreen extends StatelessWidget {
                       clipBehavior: Clip.none,
                       children: [
                         Text(
-                          currentFace,
+                          widget.currentFace,
                           style: const TextStyle(fontSize: 90, height: 1),
                         ),
-                        if (equippedGlasses != null &&
-                            equippedGlasses!.isNotEmpty)
+                        if (widget.equippedGlasses != null &&
+                            widget.equippedGlasses!.isNotEmpty)
                           _buildAccessoryLayer(
-                            id: equippedGlasses!,
+                            id: widget.equippedGlasses!,
                             size: 50,
                             shopItems: shopItems,
                           ),
-                        if (equippedHat != null && equippedHat!.isNotEmpty)
+                        if (widget.equippedHat != null &&
+                            widget.equippedHat!.isNotEmpty)
                           _buildAccessoryLayer(
-                            id: equippedHat!,
+                            id: widget.equippedHat!,
                             size: 60,
                             shopItems: shopItems,
                           ),
@@ -222,18 +227,18 @@ class AchievementsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // NAMA USER + EDIT
+                // NAMA USER + EDIT ICON
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      userName,
+                      widget.userName,
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: AppDimensions.spacingXSmall),
+                    const SizedBox(width: 8),
                     GestureDetector(
                       onTap: showEditNameDialog,
                       child: Container(
@@ -257,62 +262,92 @@ class AchievementsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.orange,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      "$stars Bintang",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                
+                const SizedBox(height: 16),
+                
+                // --- 2. KARTU STATISTIK (BARU) ---
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      // Statistik Bintang
+                      Column(
+                        children: [
+                          const Icon(Icons.star, color: AppColors.orange, size: 28),
+                          const SizedBox(height: 4),
+                          Text(
+                            "${widget.stars}",
+                            style: const TextStyle(
+                              fontSize: 20, 
+                              fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          const Text(
+                            "Bintang",
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      // Statistik Materi Selesai (Dinamis)
+                      Column(
+                        children: [
+                          const Icon(Icons.check_circle, color: AppColors.green, size: 28),
+                          const SizedBox(height: 4),
+                          _isLoadingStats
+                              ? const SizedBox(
+                                  width: 20, 
+                                  height: 20, 
+                                  child: CircularProgressIndicator(strokeWidth: 2)
+                                )
+                              : Text(
+                                  "$_completedMaterials",
+                                  style: const TextStyle(
+                                    fontSize: 20, 
+                                    fontWeight: FontWeight.bold
+                                  ),
+                                ),
+                          const Text(
+                            "Materi Selesai",
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
 
                 const SizedBox(height: 32),
 
-                // 2. PILIHAN WAJAH
+                // 3. PILIHAN WAJAH
                 const Text(
                   "Pilih Wajah",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
-                  height: AppDimensions.faceListHeight,
+                  height: 70, // Tinggi tetap agar ListView horizontal aman
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: baseFaces.length,
                     itemBuilder: (context, index) {
                       final face = baseFaces[index];
-                      final isSelected = face == currentFace;
+                      final isSelected = face == widget.currentFace;
                       return GestureDetector(
                         onTap: () {
-                          try {
-                            onChangeFace(face);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Wajah berhasil diubah! 😊'),
-                                backgroundColor: AppColors.green,
-                                duration: Duration(seconds: 1),
-                              ),
-                            );
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Gagal mengubah wajah'),
-                                backgroundColor: AppColors.red,
-                              ),
-                            );
-                          }
+                          widget.onChangeFace(face);
+                          // Feedback visual/sound bisa ditambahkan di sini
                         },
                         child: Container(
                           margin: const EdgeInsets.only(right: 12),
@@ -338,23 +373,22 @@ class AchievementsScreen extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: AppDimensions.spacingLarge),
+                const SizedBox(height: 24),
 
-                const SizedBox(height: AppDimensions.spacingXLarge),
-                // 3. TOKO AKSESORIS
+                // 4. TOKO AKSESORIS
                 const Text(
                   "Aksesoris",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: AppDimensions.spacingSmall),
+                const SizedBox(height: 12),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: AppDimensions.gridCrossCount,
-                    mainAxisSpacing: AppDimensions.gridSpacing,
-                    crossAxisSpacing: AppDimensions.gridSpacing,
-                    childAspectRatio: AppDimensions.gridAspectRatio,
+                    crossAxisCount: 2, // Sesuaikan dengan layoutmu
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 1.4,
                   ),
                   itemCount: shopItems.length,
                   itemBuilder: (context, index) {
@@ -362,54 +396,26 @@ class AchievementsScreen extends StatelessWidget {
                     final String id = item['id'] as String;
                     final String type = item['type'] as String;
                     final int cost = item['cost'] as int;
-                    final bool isOwned = ownedAvatars.contains(id);
+                    final bool isOwned = widget.ownedAvatars.contains(id);
                     final bool isEquipped =
-                        (type == 'hat' && equippedHat == id) ||
-                        (type == 'glasses' && equippedGlasses == id);
+                        (type == 'hat' && widget.equippedHat == id) ||
+                        (type == 'glasses' && widget.equippedGlasses == id);
 
                     return GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
                         if (!isOwned) {
-                          // Belum punya → Beli
+                          // Beli
                           try {
-                            onBuyItem(id, cost);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Berhasil membeli item! 🎉'),
-                                backgroundColor: AppColors.green,
-                                duration: Duration(seconds: 1),
-                              ),
-                            );
+                            widget.onBuyItem(id, cost);
                           } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Bintang tidak cukup! ⭐'),
-                                backgroundColor: AppColors.red,
-                                duration: Duration(seconds: 2),
-                              ),
+                             ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Bintang tidak cukup!'), backgroundColor: Colors.red),
                             );
                           }
                         } else {
-                          // Sudah punya → Toggle equip/unequip
-                          try {
-                            onEquipItem(id, type);
-                            final action = isEquipped ? 'Dilepas' : 'Dipasang';
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Item $action! ✨'),
-                                backgroundColor: AppColors.green,
-                                duration: const Duration(seconds: 1),
-                              ),
-                            );
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Gagal mengubah item'),
-                                backgroundColor: AppColors.red,
-                              ),
-                            );
-                          }
+                          // Pakai/Lepas
+                          widget.onEquipItem(id, type);
                         }
                       },
                       child: Container(
@@ -503,13 +509,13 @@ class AchievementsScreen extends StatelessWidget {
                   },
                 ),
 
-                const SizedBox(height: AppDimensions.spacingXLarge),
+                const SizedBox(height: 32),
 
-                // --- 4. LEMARI TROFI (DITAMBAHKAN KEMBALI) ---
+                // 5. LEMARI TROFI
                 Row(
                   children: const [
                     Icon(Icons.emoji_events, color: AppColors.yellow),
-                    SizedBox(width: AppDimensions.spacingXSmall),
+                    SizedBox(width: 8),
                     Text(
                       "Lemari Trofi",
                       style: TextStyle(
@@ -519,20 +525,20 @@ class AchievementsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: AppDimensions.spacingSmall),
+                const SizedBox(height: 12),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4,
-                    mainAxisSpacing: AppDimensions.gridSpacing,
-                    crossAxisSpacing: AppDimensions.gridSpacing,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
                     childAspectRatio: 0.8,
                   ),
                   itemCount: allBadges.length,
                   itemBuilder: (context, index) {
                     final badge = allBadges[index];
-                    final isEarned = badges.contains(badge['id']);
+                    final isEarned = widget.badges.contains(badge['id']);
 
                     return Column(
                       children: [
@@ -566,12 +572,14 @@ class AchievementsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: AppDimensions.spacingXSmall),
+                        const SizedBox(height: 4),
                         Text(
                           badge['name'] as String,
                           style: TextStyle(
                             fontSize: 10,
-                            color: isEarned ? AppColors.textDark : Colors.grey,
+                            color: isEarned
+                                ? AppColors.textDark
+                                : Colors.grey,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -580,7 +588,7 @@ class AchievementsScreen extends StatelessWidget {
                   },
                 ),
 
-                const SizedBox(height: AppDimensions.bottomPadding),
+                const SizedBox(height: 32),
               ],
             ),
           ),
@@ -589,6 +597,7 @@ class AchievementsScreen extends StatelessWidget {
     );
   }
 
+  // Helper Widget untuk render aksesoris di stack
   Widget _buildAccessoryLayer({
     required String id,
     required double size,
