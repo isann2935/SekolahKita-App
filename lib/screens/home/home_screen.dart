@@ -24,23 +24,17 @@ class HomeScreen extends StatelessWidget {
     required this.subjectProgress,
   });
 
-  // --- LOGIKA HITUNG PERSENTASE (PERBAIKAN) ---
+  // --- LOGIKA HITUNG PERSENTASE (1 Level = 10%) ---
   double _calculateProgress(String subject) {
-    // 1. Ambil level yang sudah selesai di masing-masing mode
     int easyLevel = subjectProgress["${subject}_mudah"] ?? 0;
     int hardLevel = subjectProgress["${subject}_sulit"] ?? 0;
     
-    // 2. Jumlahkan total level yang selesai
-    // Misal: Selesai Level 1 Mudah (1) + Belum main Sulit (0) = 1
-    // Misal: Selesai Level 5 Mudah (5) + Level 2 Sulit (2) = 7
+    // Total level selesai (Mudah + Sulit)
     int totalCompleted = easyLevel + hardLevel;
     
-    // 3. Total Target Level adalah 10
-    // (Membaca/Berhitung: 5 Mudah + 5 Sulit = 10)
-    // (Menulis: 10 Level di mode mudah = 10)
+    // Target: 10 Level
     int maxLevels = 10; 
     
-    // 4. Hitung Persentase (Contoh: 1 / 10 = 0.1 atau 10%)
     return (totalCompleted / maxLevels).clamp(0.0, 1.0);
   }
 
@@ -85,6 +79,7 @@ class HomeScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Kiri: Avatar & Nama
                   Row(
                     children: [
                       Container(
@@ -115,6 +110,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                  // Kanan: Bintang
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
@@ -159,12 +155,13 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
+// 🔥 WIDGET KARTU YANG SUDAH DIPERBAIKI (ANTI-OVERFLOW) 🔥
 class _SubjectCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final Color color;
   final IconData icon;
-  final double progress; // 0.0 - 1.0
+  final double progress;
   final VoidCallback onTap;
 
   const _SubjectCard({
@@ -198,36 +195,53 @@ class _SubjectCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Baris Atas
+            // Baris Atas: Icon - Teks - Panah
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(icon, color: Colors.white, size: 32),
-                    ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          subtitle,
-                          style: const TextStyle(color: Colors.white70, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ],
+                // 1. Icon Kotak
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 32),
                 ),
+                
+                const SizedBox(width: 16),
+
+                // 2. Teks (Judul & Subjudul)
+                // 🔥 Expanded: Wajib ada biar teks gak nabrak kanan!
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white, 
+                          fontSize: 24, 
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis, // Titik-titik kalau kepanjangan
+                      ),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          color: Colors.white70, 
+                          fontSize: 14,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis, // Titik-titik kalau kepanjangan
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                // 3. Panah
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
@@ -249,8 +263,7 @@ class _SubjectCard extends StatelessWidget {
                   ),
                   child: FractionallySizedBox(
                     alignment: Alignment.centerLeft,
-                    // Pastikan progress minimal 0 (kosong) jika belum ada level selesai
-                    widthFactor: progress, 
+                    widthFactor: progress > 0 ? progress : 0.0, 
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -261,7 +274,7 @@ class _SubjectCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  "${(progress * 100).toInt()}% Selesai",
+                  "${(progress * 100).toInt()}% Selesai", 
                   style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                 )
               ],

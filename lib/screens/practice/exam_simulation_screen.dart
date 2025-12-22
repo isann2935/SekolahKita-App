@@ -658,6 +658,8 @@ class _ExamWritingViewState extends State<_ExamWritingView> {
         Expanded(
           child: ClipRect(
             child: WritingScreen(
+              // 🔥 PERBAIKAN: Tambahkan Key ini biar Canvas ke-reset saat ganti soal!
+              key: ValueKey(currentIndex), 
               step: widget.steps[currentIndex],
               onBack: () {}, // Tombol back dinonaktifkan saat ujian
               onComplete: (success) {

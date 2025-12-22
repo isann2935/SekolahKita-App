@@ -214,13 +214,13 @@ class _PracticeScreenState extends State<PracticeScreen> {
         'color': const Color(0xFF4ECDC4),
         'unlocked': true,
         'subtitle': '3 Baca, 3 Tulis, 4 Hitung',
-        'action': () => _startMixedQuiz(context), // 👈 PANGGIL KUIS CAMPUR DI SINI
+        'action': () => _startMixedQuiz(context), 
       },
       {
         'title': 'Simulasi Ujian',
         'emoji': '📝',
         'color': AppColors.yellow,
-        'unlocked': true, // 👈 Ubah jadi TRUE (Buka Kunci)
+        'unlocked': true, 
         'subtitle': '4 Menit • 10 Soal',
         'action': () {
           // Navigasi ke Layar Ujian Baru
@@ -269,23 +269,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 const Text("Pencapaian Target", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 _ProgressCard(title: "Streak 7 Hari", emoji: "🔥", current: _currentStreak, total: 7, color: AppColors.orange),
-                const SizedBox(height: 24),
-                // Tombol Test Notifikasi (bisa dihapus nanti)
-                ElevatedButton.icon(
-                  onPressed: () {
-                    NotificationService().showTestNotification();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("🔔 Notifikasi test dikirim! Cek notification bar."), backgroundColor: AppColors.blue),
-                    );
-                  },
-                  icon: const Icon(Icons.notifications_active),
-                  label: const Text("Test Notifikasi"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey.shade400,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                  ),
-                ),
+                
+                // --- BAGIAN BUTTON TEST SUDAH DIHAPUS DI SINI ---
+                
                 const SizedBox(height: 100),
               ],
             ),
