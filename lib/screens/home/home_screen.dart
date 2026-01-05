@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../theme/colors.dart';
+import '../../constants/shop_data.dart'; // ✅ Pastikan import data toko biar sinkron
 
 class HomeScreen extends StatelessWidget {
   final String userName;
@@ -23,6 +24,31 @@ class HomeScreen extends StatelessWidget {
     required this.onSubjectSelect,
     required this.subjectProgress,
   });
+
+  // --- LOGIKA HELPER AKSESORIS (VERSI MINI) ---
+  // Kita perlu menyesuaikan posisi (offset) karena avatar di Home lebih kecil (50px)
+  // dibanding di Profile (100px). Jadi offsetnya kira-kira dibagi 2.
+  Map<String, dynamic> _getMiniAccessoryData(String? id) {
+    if (id == null) return {'emoji': '', 'offset_y': 0.0};
+
+    // Mapping manual untuk posisi versi KECIL (Home)
+    const customMiniPosition = {
+      'hat1': {'emoji': '🎩', 'offset_y': -17.0}, 
+      'hat2': {'emoji': '👑', 'offset_y': -17.0},
+      'hat3': {'emoji': '🎓', 'offset_y': -14.0},
+      'glasses1': {'emoji': '👓', 'offset_y': 0.0},
+      'glasses2': {'emoji': '🕶️', 'offset_y': 0.0},
+      'glasses3': {'emoji': '🥽', 'offset_y': 0.0},
+    };
+
+    if (customMiniPosition.containsKey(id)) {
+      return customMiniPosition[id]!;
+    }
+
+    // Fallback ambil dari shop data
+    final item = SHOP_ITEMS.firstWhere((e) => e['id'] == id, orElse: () => {});
+    return item.isEmpty ? {'emoji': '', 'offset_y': 0.0} : item;
+  }
 
   // --- LOGIKA HITUNG PERSENTASE (1 Level = 10%) ---
   double _calculateProgress(String subject) {
@@ -82,6 +108,7 @@ class HomeScreen extends StatelessWidget {
                   // Kiri: Avatar & Nama
                   Row(
                     children: [
+                      // 🔥 AVATAR MINI YANG SUDAH DIPERBAIKI 🔥
                       Container(
                         width: 50,
                         height: 50,
@@ -92,11 +119,30 @@ class HomeScreen extends StatelessWidget {
                         ),
                         child: Stack(
                           alignment: Alignment.center,
-                          clipBehavior: Clip.none,
+                          clipBehavior: Clip.none, // Biar topi bisa nongol dikit
                           children: [
-                            Text(currentFace, style: const TextStyle(fontSize: 28)),
+                            // 1. Wajah
+                            Text(currentFace, style: const TextStyle(fontSize: 28, height: 1)),
+                            
+                            // 2. Kacamata (Jika ada)
+                            if (equippedGlasses != null)
+                              Transform.translate(
+                                offset: Offset(0, _getMiniAccessoryData(equippedGlasses)['offset_y'] as double),
+                                child: Text(
+                                  _getMiniAccessoryData(equippedGlasses)['emoji'] as String,
+                                  style: const TextStyle(fontSize: 18, height: 1),
+                                ),
+                              ),
+
+                            // 3. Topi (Jika ada)
                             if (equippedHat != null)
-                              Positioned(top: -15, child: Text("🎩", style: TextStyle(fontSize: 20))),
+                              Transform.translate(
+                                offset: Offset(0, _getMiniAccessoryData(equippedHat)['offset_y'] as double),
+                                child: Text(
+                                  _getMiniAccessoryData(equippedHat)['emoji'] as String,
+                                  style: const TextStyle(fontSize: 22, height: 1),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -155,7 +201,7 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// 🔥 WIDGET KARTU YANG SUDAH DIPERBAIKI (ANTI-OVERFLOW) 🔥
+// Widget Kartu (Tetap sama seperti sebelumnya)
 class _SubjectCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -185,7 +231,7 @@ class _SubjectCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.4),
+              color: color.withValues(alpha: 0.4),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -195,53 +241,27 @@ class _SubjectCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Baris Atas: Icon - Teks - Panah
             Row(
               children: [
-                // 1. Icon Kotak
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(icon, color: Colors.white, size: 32),
                 ),
-                
                 const SizedBox(width: 16),
-
-                // 2. Teks (Judul & Subjudul)
-                // 🔥 Expanded: Wajib ada biar teks gak nabrak kanan!
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          color: Colors.white, 
-                          fontSize: 24, 
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis, // Titik-titik kalau kepanjangan
-                      ),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          color: Colors.white70, 
-                          fontSize: 14,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis, // Titik-titik kalau kepanjangan
-                      ),
+                      Text(title, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
-
                 const SizedBox(width: 8),
-
-                // 3. Panah
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
@@ -249,34 +269,21 @@ class _SubjectCard extends StatelessWidget {
                 ),
               ],
             ),
-            
-            // --- PROGRESS BAR ---
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   height: 10,
                   width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
                   child: FractionallySizedBox(
                     alignment: Alignment.centerLeft,
                     widthFactor: progress > 0 ? progress : 0.0, 
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
+                    child: Container(decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10))),
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  "${(progress * 100).toInt()}% Selesai", 
-                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                )
+                Text("${(progress * 100).toInt()}% Selesai", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))
               ],
             ),
           ],

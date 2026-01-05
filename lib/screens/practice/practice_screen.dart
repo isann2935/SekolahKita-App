@@ -5,11 +5,14 @@ import 'dart:math';
 import '../../theme/colors.dart';
 import '../question/question_screen.dart';
 import '../writing/writing_screen.dart';
-// IMPORT DATA SOAL (Penting!)
+// IMPORT DATA SOAL
 import '../../data/reading_questions.dart';
 import '../../data/math_questions.dart';
 import 'exam_simulation_screen.dart';
 import '../../services/notification_service.dart';
+import '../battle/battle_screen.dart'; 
+import '../parent/add_question_screen.dart'; 
+import '../../services/custom_question_service.dart'; 
 
 class PracticeScreen extends StatefulWidget {
   const PracticeScreen({super.key});
@@ -38,24 +41,20 @@ class _PracticeScreenState extends State<PracticeScreen> {
     int streak = prefs.getInt(_streakKey) ?? 0;
     
     if (lastActiveStr == null) {
-      // Pertama kali membuka aplikasi
       streak = 1;
     } else {
       final lastActive = _parseDate(lastActiveStr);
       final difference = today.difference(lastActive).inDays;
       
       if (difference == 0) {
-        // Sudah aktif hari ini, streak tidak berubah
+        // Sama
       } else if (difference == 1) {
-        // Aktif kemarin, tambah streak
         streak = (streak + 1).clamp(0, 7);
       } else {
-        // Tidak aktif lebih dari 1 hari, reset streak
         streak = 1;
       }
     }
     
-    // Simpan data terbaru
     await prefs.setString(_lastActiveKey, todayStr);
     await prefs.setInt(_streakKey, streak);
     
@@ -71,35 +70,68 @@ class _PracticeScreenState extends State<PracticeScreen> {
     return DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
   }
 
-  // --- LOGIKA KUIS CAMPUR (URUT: BACA -> TULIS -> HITUNG) ---
-  void _startMixedQuiz(BuildContext context) {
-    // 1. Ambil 3 Soal Membaca Acak
-    final allReading = easyReadingSteps.expand((x) => x).toList()..shuffle();
-    final selectedReading = allReading.take(3).toList();
+  // --- LOGIKA HELPER: KONVERSI SOAL CUSTOM ---
+  List<ReadingQuestion> _mixCustomReading(List<ReadingQuestion> defaultList, List<CustomQuestionModel> customs) {
+    List<ReadingQuestion> mixed = List.from(defaultList);
+    for (var c in customs.where((e) => !e.isMath)) {
+      List<String> opts = [...c.wrongAnswers, c.correctAnswer]..shuffle();
+      mixed.add(ReadingQuestion(
+        text: c.text,
+        options: opts,
+        correctIndex: opts.indexOf(c.correctAnswer),
+      ));
+    }
+    return mixed..shuffle();
+  }
 
-    // 2. Ambil 4 Soal Berhitung Acak
-    final allMath = easyMathSteps.expand((x) => x).toList()..shuffle();
-    final selectedMath = allMath.take(4).toList();
+  List<MathQuestion> _mixCustomMath(List<MathQuestion> defaultList, List<CustomQuestionModel> customs) {
+    List<MathQuestion> mixed = List.from(defaultList);
+    for (var c in customs.where((e) => e.isMath)) {
+      List<String> opts = [...c.wrongAnswers, c.correctAnswer]..shuffle();
+      mixed.add(MathQuestion(
+        visual: c.text,
+        questionText: "Pilih jawaban yang benar:",
+        options: opts,
+        correctIndex: opts.indexOf(c.correctAnswer),
+        hint: '', // Pastikan hint ada
+      ));
+    }
+    return mixed..shuffle();
+  }
 
-    // 3. Ambil 3 Step Menulis Acak (Step 1-10)
+  // --- LOGIKA KUIS CAMPUR (UPDATED: Ambil Custom Dulu) ---
+  void _startMixedQuiz(BuildContext context) async {
+    // 1. Ambil Soal Custom
+    List<CustomQuestionModel> customQuestions = await CustomQuestionService.getQuestions();
+
+    // 2. Campur Soal Membaca
+    final allReadingDefault = easyReadingSteps.expand((x) => x).toList();
+    final allReadingMixed = _mixCustomReading(allReadingDefault, customQuestions);
+    final selectedReading = allReadingMixed.take(3).toList();
+
+    // 3. Campur Soal Berhitung
+    final allMathDefault = easyMathSteps.expand((x) => x).toList();
+    final allMathMixed = _mixCustomMath(allMathDefault, customQuestions);
+    final selectedMath = allMathMixed.take(4).toList();
+
+    // 4. Writing tetap random
     final writingSteps = List.generate(10, (i) => i + 1)..shuffle();
     final selectedWritingSteps = writingSteps.take(3).toList();
 
-    // MULAI ESTAFET:
-    // STEP 1: MEMBACA
+    if (!mounted) return;
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => QuestionScreen(
           subject: "Membaca",
-          level: 1, // Dummy level
+          level: 1, 
           mode: "mudah",
-          customReadingData: selectedReading, // Kirim soal khusus
+          customReadingData: selectedReading, // Kirim Data Campuran
           onBack: () => Navigator.pop(context),
           onComplete: (success) {
-            Navigator.pop(context); // Tutup Membaca
+            Navigator.pop(context);
             if (success) {
-              // STEP 2: MENULIS (Recursive Queue)
               _runWritingQueue(context, selectedWritingSteps, selectedMath);
             }
           },
@@ -108,10 +140,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
     );
   }
 
-  // Helper untuk menjalankan Writing Screen berurutan
   void _runWritingQueue(BuildContext context, List<int> steps, List<MathQuestion> nextMathQuestions) {
     if (steps.isEmpty) {
-      // Jika menulis habis, lanjut ke BERHITUNG
       _startMathPhase(context, nextMathQuestions);
       return;
     }
@@ -126,9 +156,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
           step: currentStep,
           onBack: () => Navigator.pop(context),
           onComplete: (success) {
-            Navigator.pop(context); // Tutup Writing saat ini
+            Navigator.pop(context);
             if (success) {
-              // Lanjut ke step menulis berikutnya (Recursion)
               _runWritingQueue(context, remainingSteps, nextMathQuestions);
             }
           },
@@ -137,7 +166,6 @@ class _PracticeScreenState extends State<PracticeScreen> {
     );
   }
 
-  // Helper untuk fase terakhir: BERHITUNG
   void _startMathPhase(BuildContext context, List<MathQuestion> mathQuestions) {
     Navigator.push(
       context,
@@ -146,12 +174,11 @@ class _PracticeScreenState extends State<PracticeScreen> {
           subject: "Berhitung",
           level: 1,
           mode: "mudah",
-          customMathData: mathQuestions, // Kirim soal khusus
+          customMathData: mathQuestions,
           onBack: () => Navigator.pop(context),
           onComplete: (success) {
             Navigator.pop(context);
             if (success) {
-              // FINISH SEMUA - tandai aktivitas selesai
               NotificationService().markActivityCompleted();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -168,23 +195,54 @@ class _PracticeScreenState extends State<PracticeScreen> {
     );
   }
 
-  // --- LOGIKA KUIS HARIAN (YANG TADI) ---
-  void _handleDailyQuiz(BuildContext context) {
+  // --- LOGIKA KUIS HARIAN (UPDATED: Campur Custom) ---
+  void _handleDailyQuiz(BuildContext context) async {
     final int day = DateTime.now().day;
     final int modeIndex = day % 3; 
     final int randomLevel = Random().nextInt(5) + 1; 
 
+    // Ambil Soal Custom Dulu
+    List<CustomQuestionModel> customQuestions = await CustomQuestionService.getQuestions();
+
+    if (!mounted) return;
+
     if (modeIndex == 0) { // Berhitung
-      Navigator.push(context, MaterialPageRoute(builder: (context) => QuestionScreen(subject: "Berhitung", level: randomLevel, mode: "mudah", onBack: () => Navigator.pop(context), onComplete: (success) { Navigator.pop(context); if(success) _showDailySuccess(context, "Berhitung"); })));
+      // Campur soal Level terpilih dengan Custom Math
+      List<MathQuestion> defaultQuestions = easyMathSteps[(randomLevel - 1).clamp(0, 4)];
+      List<MathQuestion> mixedQuestions = _mixCustomMath(defaultQuestions, customQuestions);
+      // Ambil 5 soal saja dari campuran
+      mixedQuestions = mixedQuestions.take(5).toList();
+
+      Navigator.push(context, MaterialPageRoute(builder: (context) => QuestionScreen(
+        subject: "Berhitung", 
+        level: randomLevel, 
+        mode: "mudah", 
+        customMathData: mixedQuestions, // Kirim Data Campuran
+        onBack: () => Navigator.pop(context), 
+        onComplete: (success) { Navigator.pop(context); if(success) _showDailySuccess(context, "Berhitung"); }
+      )));
+
     } else if (modeIndex == 1) { // Membaca
-      Navigator.push(context, MaterialPageRoute(builder: (context) => QuestionScreen(subject: "Membaca", level: randomLevel, mode: "mudah", onBack: () => Navigator.pop(context), onComplete: (success) { Navigator.pop(context); if(success) _showDailySuccess(context, "Membaca"); })));
+      // Campur soal Level terpilih dengan Custom Reading
+      List<ReadingQuestion> defaultQuestions = easyReadingSteps[(randomLevel - 1).clamp(0, 4)];
+      List<ReadingQuestion> mixedQuestions = _mixCustomReading(defaultQuestions, customQuestions);
+      mixedQuestions = mixedQuestions.take(5).toList();
+
+      Navigator.push(context, MaterialPageRoute(builder: (context) => QuestionScreen(
+        subject: "Membaca", 
+        level: randomLevel, 
+        mode: "mudah", 
+        customReadingData: mixedQuestions, // Kirim Data Campuran
+        onBack: () => Navigator.pop(context), 
+        onComplete: (success) { Navigator.pop(context); if(success) _showDailySuccess(context, "Membaca"); }
+      )));
+
     } else { // Menulis
       Navigator.push(context, MaterialPageRoute(builder: (context) => WritingScreen(step: randomLevel, onBack: () => Navigator.pop(context), onComplete: (success) { Navigator.pop(context); if(success) _showDailySuccess(context, "Menulis"); })));
     }
   }
 
   void _showDailySuccess(BuildContext context, String subject) {
-    // Tandai aktivitas selesai untuk cancel notifikasi hari ini
     NotificationService().markActivityCompleted();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Hebat! Kuis Harian ($subject) Selesai! 🎉"), backgroundColor: AppColors.green));
   }
@@ -216,6 +274,21 @@ class _PracticeScreenState extends State<PracticeScreen> {
         'subtitle': '3 Baca, 3 Tulis, 4 Hitung',
         'action': () => _startMixedQuiz(context), 
       },
+      // 🔥 MENU DUEL
+      {
+        'title': 'Duel 1 vs 1',
+        'emoji': '⚔️',
+        'color': AppColors.red,
+        'unlocked': true,
+        'subtitle': 'Adu Cepat: Matematika & Membaca',
+        'action': () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const BattleScreen()),
+          );
+        },
+      },
+      // 🔥 MENU SIMULASI
       {
         'title': 'Simulasi Ujian',
         'emoji': '📝',
@@ -223,12 +296,23 @@ class _PracticeScreenState extends State<PracticeScreen> {
         'unlocked': true, 
         'subtitle': '4 Menit • 10 Soal',
         'action': () {
-          // Navigasi ke Layar Ujian Baru
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const ExamSimulationScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const ExamSimulationScreen()),
+          );
+        },
+      },
+      // 🔥 MENU BUAT SOAL SENDIRI
+      {
+        'title': 'Buat Soal Sendiri',
+        'emoji': '✍️',
+        'color': Colors.purple,
+        'unlocked': true,
+        'subtitle': 'Tulis soal khusus untuk anak',
+        'action': () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddQuestionScreen()),
           );
         },
       },
@@ -253,6 +337,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
               children: [
                 const Text("Aktivitas", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
+                
+                // Looping untuk menampilkan kartu aktivitas
                 ...activities.asMap().entries.map((entry) {
                   final index = entry.key;
                   final activity = entry.value;
@@ -265,12 +351,11 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     onTap: activity['action'] as VoidCallback,
                   ).animate().fadeIn(delay: (index * 100).ms).slideX();
                 }),
+
                 const SizedBox(height: 32),
                 const Text("Pencapaian Target", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 _ProgressCard(title: "Streak 7 Hari", emoji: "🔥", current: _currentStreak, total: 7, color: AppColors.orange),
-                
-                // --- BAGIAN BUTTON TEST SUDAH DIHAPUS DI SINI ---
                 
                 const SizedBox(height: 100),
               ],
@@ -282,7 +367,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
   }
 }
 
-
+// Widget Kartu Aktivitas (Updated: withValues)
 class _ActivityCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -303,7 +388,8 @@ class _ActivityCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: unlocked ? color : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: unlocked ? [BoxShadow(color: color.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+          // ✅ FIX: Ganti withOpacity jadi withValues
+          boxShadow: unlocked ? [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
         ),
         child: Row(
           children: [
@@ -334,7 +420,8 @@ class _ProgressCard extends StatelessWidget {
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
       child: Column(
         children: [
-          Row(children: [Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Text(emoji, style: const TextStyle(fontSize: 20))), const SizedBox(width: 12), Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold))), Text("$current / $total", style: const TextStyle(color: Colors.grey))]),
+          // ✅ FIX: Ganti withOpacity jadi withValues
+          Row(children: [Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: Text(emoji, style: const TextStyle(fontSize: 20))), const SizedBox(width: 12), Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold))), Text("$current / $total", style: const TextStyle(color: Colors.grey))]),
           const SizedBox(height: 12),
           LinearProgressIndicator(value: current / total, backgroundColor: Colors.grey.shade100, color: color, minHeight: 8, borderRadius: BorderRadius.circular(4)),
         ],

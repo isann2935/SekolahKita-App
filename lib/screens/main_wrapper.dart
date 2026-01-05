@@ -6,12 +6,12 @@ import '../widgets/difficulty_modal.dart';
 import '../widgets/feedback_popup.dart';
 import 'home/home_screen.dart';
 import 'practice/practice_screen.dart';
-import 'achievements/achievements_screen.dart';
+import 'achievements/achievements_screen.dart'; 
+import 'profile/profile_screen.dart';
 import 'map/adventure_map_screen.dart';
 import 'question/question_screen.dart';
 import 'writing/writing_screen.dart';
 import 'onboarding_screen.dart';
-import 'profile/profile_screen.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -43,7 +43,7 @@ class _MainWrapperState extends State<MainWrapper> {
   String? equippedHat;
   String? equippedGlasses;
   
-  // Progress Map (Menyimpan level tertinggi. Contoh: "Membaca_mudah": 2)
+  // Progress Map
   Map<String, int> progressMap = {};
 
   @override
@@ -56,7 +56,6 @@ class _MainWrapperState extends State<MainWrapper> {
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
     
-    // Load progress level
     final subjects = ["Membaca", "Menulis", "Berhitung"];
     final difficulties = ["mudah", "sulit"];
     final Map<String, int> loadedProgress = {};
@@ -106,7 +105,6 @@ class _MainWrapperState extends State<MainWrapper> {
       await prefs.remove('equippedGlasses');
     }
 
-    // Simpan semua progress level
     progressMap.forEach((key, value) {
       prefs.setInt(key, value);
     });
@@ -117,15 +115,12 @@ class _MainWrapperState extends State<MainWrapper> {
     return progressMap[key] ?? 0;
   }
 
-  // 🔥 UPDATE PROGRESS (DIPERBAIKI)
   Future<void> _updateProgress(String subject, String difficulty, int completedLevel) async {
     final key = "${subject}_$difficulty";
     final currentProgress = progressMap[key] ?? 0;
 
-    // Hanya update jika level yang diselesaikan lebih tinggi
     if (completedLevel > currentProgress) {
       setState(() {
-        // PENTING: Buat map baru agar UI mendeteksi perubahan (Deep Copy logic)
         final newMap = Map<String, int>.from(progressMap);
         newMap[key] = completedLevel;
         progressMap = newMap;
@@ -194,7 +189,6 @@ class _MainWrapperState extends State<MainWrapper> {
 
   void _checkAndUnlockBadges() {
     final newBadges = <String>[];
-    
     if (stars >= 10 && !earnedBadges.contains('first_score')) newBadges.add('first_score');
     if (_getProgress("Membaca", "mudah") >= 1 && !earnedBadges.contains('reader')) newBadges.add('reader');
     if (_getProgress("Menulis", "mudah") >= 1 && !earnedBadges.contains('writer')) newBadges.add('writer');
@@ -231,10 +225,8 @@ class _MainWrapperState extends State<MainWrapper> {
       );
     }
 
-    // Hitung total level untuk bar di Profil
     int totalLevelsDone = progressMap.values.fold(0, (sum, level) => sum + level);
 
-    // --- DAFTAR HALAMAN (Pages) ---
     final List<Widget> pages = [
       // Tab 0: Beranda
       HomeScreen(
@@ -243,7 +235,6 @@ class _MainWrapperState extends State<MainWrapper> {
         currentFace: currentFace,
         equippedHat: equippedHat,
         equippedGlasses: equippedGlasses,
-        // ✅ KIRIM DATA PROGRESS KE HOME SCREEN
         subjectProgress: progressMap, 
         onSubjectSelect: (subject) {
           if (subject == "Menulis") {
@@ -271,35 +262,33 @@ class _MainWrapperState extends State<MainWrapper> {
       // Tab 1: Latihan
       const PracticeScreen(),
 
-      // Tab 2: Prestasi
+      // 🔥 TAB 2: PRESTASI (AchievementsScreen)
+      // Menerima data untuk Trofi, Statistik, dan Lencana
       AchievementsScreen(
         badges: earnedBadges,
-        stars: stars,
-        userName: userName,
-        ownedAvatars: ownedAvatars,
-        currentFace: currentFace,
-        equippedHat: equippedHat,
-        equippedGlasses: equippedGlasses,
-        onBuyItem: _buyAvatar,
-        onEquipItem: _equipAvatar,
-        onChangeFace: _changeFace,
-        onChangeName: _changeName,
+        completedLevels: totalLevelsDone,
+        stars: stars, // Dikirim juga untuk logika trofi jika perlu
       ),
 
-      // Tab 3: Profil
+      // 🔥 TAB 3: PROFIL (ProfileScreen)
+      // Menerima data untuk Kustomisasi dan Info Dasar
       ProfileScreen(
         userName: userName,
         stars: stars,
-        daysLearned: 1,
-        completedLevels: totalLevelsDone, // ✅ Data Asli untuk Profil
+        daysLearned: 1, 
+        completedLevels: totalLevelsDone,
         onEditName: _changeName,
+        // Data Kustomisasi
         currentFace: currentFace,
         equippedHat: equippedHat,
         equippedGlasses: equippedGlasses,
+        ownedAvatars: ownedAvatars,
+        onBuyItem: _buyAvatar,
+        onEquipItem: _equipAvatar,
+        onChangeFace: _changeFace,
       ),
     ];
 
-    // --- NAVIGASI FULL SCREEN (MAP/SOAL) ---
     if (_currentFlow == 'map') {
       return AdventureMapScreen(
         subject: selectedSubject!,
@@ -308,11 +297,7 @@ class _MainWrapperState extends State<MainWrapper> {
         onBack: () => setState(() => _currentFlow = 'root'),
         onLevelClick: (level) => setState(() {
           currentLevel = level;
-          if (selectedSubject == "Menulis") {
-            _currentFlow = 'writing';
-          } else {
-            _currentFlow = 'question';
-          }
+          _currentFlow = (selectedSubject == "Menulis") ? 'writing' : 'question';
         }),
       );
     } else if (_currentFlow == 'writing') {
@@ -325,19 +310,8 @@ class _MainWrapperState extends State<MainWrapper> {
             setState(() { stars += 10; });
             await _saveData();
             _checkAndUnlockBadges();
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (ctx) => FeedbackPopup(
-                onClose: () {
-                  Navigator.pop(ctx);
-                  setState(() => _currentFlow = 'map');
-                },
-              ),
-            );
-          } else {
-            setState(() => _currentFlow = 'map');
-          }
+            showDialog(context: context, barrierDismissible: false, builder: (ctx) => FeedbackPopup(onClose: () { Navigator.pop(ctx); setState(() => _currentFlow = 'map'); }));
+          } else { setState(() => _currentFlow = 'map'); }
         },
       );
     } else if (_currentFlow == 'question') {
@@ -352,19 +326,8 @@ class _MainWrapperState extends State<MainWrapper> {
             setState(() { stars += 10; });
             await _saveData();
             _checkAndUnlockBadges();
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (ctx) => FeedbackPopup(
-                onClose: () {
-                  Navigator.pop(ctx);
-                  setState(() => _currentFlow = 'map');
-                },
-              ),
-            );
-          } else {
-            setState(() => _currentFlow = 'map');
-          }
+            showDialog(context: context, barrierDismissible: false, builder: (ctx) => FeedbackPopup(onClose: () { Navigator.pop(ctx); setState(() => _currentFlow = 'map'); }));
+          } else { setState(() => _currentFlow = 'map'); }
         },
       );
     }
